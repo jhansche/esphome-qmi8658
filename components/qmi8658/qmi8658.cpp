@@ -40,14 +40,14 @@ void QMI8658Component::setup() {
     if (this->interrupt_pin_1_ != nullptr)  // Don't seem to work very well? Use interrupt 2
     {
         this->interrupt_pin_1_->setup();
-        qmi8658.enableINT(SensorQMI8658::IntPin1);
+        qmi8658.enableINT(SensorQMI8658::INTERRUPT_PIN_1);
         qmi8658.enableDataReadyINT();
         ESP_LOGI(TAG, "Interrupt 1 enabled");
     }
     if (this->interrupt_pin_2_ != nullptr)
     {
         this->interrupt_pin_2_->setup();
-        qmi8658.enableINT(SensorQMI8658::IntPin2);
+        qmi8658.enableINT(SensorQMI8658::INTERRUPT_PIN_2);
         qmi8658.enableDataReadyINT();
         ESP_LOGI(TAG, "Interrupt 2 enabled");
     }
