@@ -31,13 +31,11 @@ void QMI8658Component::setup() {
     qmi8658.configAccelerometer(
         this->accel_range_,
         this->accel_odr_,
-        this->accel_lpf_mode_,
-        true);
+        this->accel_lpf_mode_);
     qmi8658.configGyroscope(
         this->gyro_range_,
         this->gyro_odr_,
-        this->gyro_lpf_mode_,
-        true);
+        this->gyro_lpf_mode_);
 
     if (this->interrupt_pin_1_ != nullptr)  // Don't seem to work very well? Use interrupt 2
     {
