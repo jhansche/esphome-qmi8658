@@ -141,6 +141,24 @@ void QMI8658Component::update() {
     uint8_t buf_reg[6];
     int16_t raw_acc_xyz[3];
 
+    this->read_register(QMI8658Register_Ax_H, buf_reg, 6);  // 0x19, 25
+    ESP_LOGD(TAG, "Accel registers (Ax_H +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
+             buf_reg[3], buf_reg[4], buf_reg[5]);
+    this->read_register(QMI8658Register_Ay_L, buf_reg, 6);  // 0x19, 25
+    ESP_LOGD(TAG, "Accel registers (Ay_L +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
+             buf_reg[3], buf_reg[4], buf_reg[5]);
+
+    this->read_register(QMI8658Register_Ay_H, buf_reg, 6);  // 0x19, 25
+    ESP_LOGD(TAG, "Accel registers (Ay_H +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
+             buf_reg[3], buf_reg[4], buf_reg[5]);
+
+    this->read_register(QMI8658Register_Az_L, buf_reg, 6);  // 0x19, 25
+    ESP_LOGD(TAG, "Accel registers (Az_L +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
+             buf_reg[3], buf_reg[4], buf_reg[5]);
+    this->read_register(QMI8658Register_Az_H, buf_reg, 6);  // 0x19, 25
+    ESP_LOGD(TAG, "Accel registers (Az_H +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
+             buf_reg[3], buf_reg[4], buf_reg[5]);
+
     this->read_register(QMI8658Register_Ax_L, buf_reg, 6);  // 0x19, 25
     ESP_LOGD(TAG, "Accel registers (Ax_L +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
              buf_reg[3], buf_reg[4], buf_reg[5]);
