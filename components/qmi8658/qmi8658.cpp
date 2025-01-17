@@ -173,32 +173,24 @@ void QMI8658Component::update() {
     uint8_t buf_reg[6];
     int16_t raw_gyro_xyz[3];
 
-    this->read_register(QMI8658Register_Gx_L, &buf_reg[0], 1);
-    this->read_register(QMI8658Register_Gx_H, &buf_reg[1], 1);
-    this->read_register(QMI8658Register_Gy_L, &buf_reg[2], 1);
-    this->read_register(QMI8658Register_Gy_H, &buf_reg[3], 1);
-    this->read_register(QMI8658Register_Gz_L, &buf_reg[4], 1);
-    this->read_register(QMI8658Register_Gz_H, &buf_reg[5], 1);
-    ESP_LOGI(TAG, "Gyro reg x6: %x %x %x %x %x %x", buf_reg[0], buf_reg[1], buf_reg[2], buf_reg[3], buf_reg[4],
-             buf_reg[5]);
+    this->read_register(QMI8658Register_Gx_L, buf_reg, 6, false);
+    // this->read_register(QMI8658Register_Gx_H, &buf_reg[1], 1);
+    // this->read_register(QMI8658Register_Gy_L, &buf_reg[2], 1);
+    // this->read_register(QMI8658Register_Gy_H, &buf_reg[3], 1);
+    // this->read_register(QMI8658Register_Gz_L, &buf_reg[4], 1);
+    // this->read_register(QMI8658Register_Gz_H, &buf_reg[5], 1);
+    ESP_LOGI(TAG, "Gyro read reg [6] burst: %x %x %x %x %x %x", buf_reg[0], buf_reg[1], buf_reg[2], buf_reg[3],
+             buf_reg[4], buf_reg[5]);
+
+    this->read_bytes_16(QMI8658Register_Gx_L, reinterpret_cast<uint16_t *>(raw_gyro_xyz), 3);
+    ESP_LOGI(TAG, "Gyro bytes 16 into [3]: %04hx %04hx %04hx", raw_gyro_xyz[0], raw_gyro_xyz[1], raw_gyro_xyz[2]);
     raw_gyro_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
     raw_gyro_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
     raw_gyro_xyz[2] = (int16_t) ((uint16_t) (buf_reg[5] << 8) | (buf_reg[4]));
-    ESP_LOGI(TAG, "Gyro raw reg into [6]: %04hx %04hx %04hx", raw_gyro_xyz[0], raw_gyro_xyz[1], raw_gyro_xyz[2]);
-
-    this->read_register(QMI8658Register_Gx_L, buf_reg, 6);
-    ESP_LOGI(TAG, "Gyro reg+6: %x %x %x %x %x %x", buf_reg[0], buf_reg[1], buf_reg[2], buf_reg[3], buf_reg[4],
-             buf_reg[5]);
-    this->read_bytes(QMI8658Register_Gx_L, buf_reg, 6);
-    ESP_LOGI(TAG, "Gyro reg+6b: %x %x %x %x %x %x", buf_reg[0], buf_reg[1], buf_reg[2], buf_reg[3], buf_reg[4],
-             buf_reg[5]);
 
     this->gyro_data.x = (raw_gyro_xyz[0] * 1.0f) / gyro_lsb_div;
     this->gyro_data.y = (raw_gyro_xyz[1] * 1.0f) / gyro_lsb_div;
     this->gyro_data.z = (raw_gyro_xyz[2] * 1.0f) / gyro_lsb_div;
-
-    this->read_bytes(QMI8658Register_Gx_L, reinterpret_cast<uint8_t *>(&raw_gyro_xyz[0]), 6);
-    ESP_LOGI(TAG, "Gyro raw into [3]: %04hx %04hx %04hx", raw_gyro_xyz[0], raw_gyro_xyz[1], raw_gyro_xyz[2]);
 
     if (this->gyro_x_sensor_ != nullptr) {
       this->gyro_x_sensor_->publish_state(gyro_data.x);
