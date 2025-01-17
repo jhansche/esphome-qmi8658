@@ -85,6 +85,23 @@ void QMI8658Component::dump_config() {
   if (this->is_failed()) {
     ESP_LOGE(TAG, "Communication with QMI8658 failed!");
   }
+  // FIXME v
+  uint8_t read_data = 0x00;
+  this->read_register(QMI8658Register_Ctrl1, &read_data, 1);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl1 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl2, &read_data, 1);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl2 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl3, &read_data, 1);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl3 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl4, &read_data, 1);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl4 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl5, &read_data, 1);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl5 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl6, &read_data, 1);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl6 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl7, &read_data, 1);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl7 = %x", read_data);
+  // ^
   LOG_UPDATE_INTERVAL(this);
   LOG_PIN("  Interrupt pin 1: ", this->interrupt_pin_1_);
   LOG_PIN("  Interrupt pin 2: ", this->interrupt_pin_2_);
