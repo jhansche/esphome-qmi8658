@@ -126,11 +126,12 @@ void QMI8658Component::update() {
   // Read temperature
   if (this->temperature_sensor_ != nullptr) {
     uint8_t buf[2];
-    uint16_t temp = 0;
+    int16_t temp = 0;
     float temp_f = 0;
 
-    this->read_register(QMI8658Register_Tempearture_L, buf, 2);
-    temp = ((short) buf[1] << 8) | buf[0];
+    this->read_register(QMI8658Register_Tempearture_L, &buf[0], 1);
+    this->read_register(QMI8658Register_Tempearture_H, &buf[1], 1);
+    temp = ((int16_t) buf[1] << 8) | buf[0];
     temp_f = (float) temp / 256.0f;
     ESP_LOGD(TAG, "Temperature: %d °C", temp_f);
     temperature_sensor_->publish_state(temp_f);
