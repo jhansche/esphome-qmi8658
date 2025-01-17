@@ -25,11 +25,64 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
 
   float get_setup_priority() const override;
 
-  void set_accel_range(QMI8658_AccRange accel_range) { accel_range_ = accel_range; }
+  void set_accel_range(QMI8658_AccRange accel_range) {
+    accel_range_ = accel_range;
+
+    switch (accel_range) {
+      case QMI8658AccRange_2g:
+        this->acc_lsb_div = 1 << 14;
+        break;
+      case QMI8658AccRange_4g:
+        this->acc_lsb_div = 1 << 13;
+        break;
+      case QMI8658AccRange_8g:
+        this->acc_lsb_div = 1 << 12;
+        break;
+      case QMI8658AccRange_16g:
+        this->acc_lsb_div = 1 << 11;
+        break;
+      default:
+        this->acc_lsb_div = 1 << 12;
+        this->accel_range_ = QMI8658AccRange_8g;
+        break;
+    }
+  }
   void set_accel_odr(QMI8658_AccOdr accel_odr) { accel_odr_ = accel_odr; }
   void set_accel_lpf_mode(bool accel_lpf_mode) { accel_lpf_mode_ = accel_lpf_mode ? A_LSP_MODE_3 : LPF_DISABLED; }
 
-  void set_gyro_range(QMI8658_GyrRange gyro_range) { gyro_range_ = gyro_range; }
+  void set_gyro_range(QMI8658_GyrRange gyro_range) {
+    gyro_range_ = gyro_range;
+    switch (gyro_range) {
+      case QMI8658GyrRange_32dps:
+        this->gyro_lsb_div = 1024;
+        break;
+      case QMI8658GyrRange_64dps:
+        this->gyro_lsb_div = 512;
+        break;
+      case QMI8658GyrRange_128dps:
+        this->gyro_lsb_div = 256;
+        break;
+      case QMI8658GyrRange_256dps:
+        this->gyro_lsb_div = 128;
+        break;
+      case QMI8658GyrRange_512dps:
+        this->gyro_lsb_div = 64;
+        break;
+      case QMI8658GyrRange_1024dps:
+        this->gyro_lsb_div = 32;
+        break;
+      case QMI8658GyrRange_2048dps:
+        this->gyro_lsb_div = 16;
+        break;
+      case QMI8658GyrRange_4096dps:
+        this->gyro_lsb_div = 8;
+        break;
+      default:
+        this->gyro_range_ = QMI8658GyrRange_512dps;
+        this->gyro_lsb_div = 64;
+        break;
+    }
+  }
   void set_gyro_odr(QMI8658_GyrOdr gyro_odr) { gyro_odr_ = gyro_odr; }
   void set_gyro_lpf_mode(bool lpf_enable) { gyro_lpf_mode_ = lpf_enable ? G_LSP_MODE_3 : LPF_DISABLED; }
 
@@ -47,6 +100,9 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   QMI8658_AccRange accel_range_;
   QMI8658_AccOdr accel_odr_;
   QMI8658_LpfMode accel_lpf_mode_;
+
+  uint16_t acc_lsb_div = 0;
+  uint16_t gyro_lsb_div = 0;
 
   QMI8658_GyrRange gyro_range_;
   QMI8658_GyrOdr gyro_odr_;
