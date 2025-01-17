@@ -129,8 +129,7 @@ void QMI8658Component::update() {
     int16_t temp = 0;
     float temp_f = 0;
 
-    this->read_register(QMI8658Register_Tempearture_L, &buf[0], 1);
-    this->read_register(QMI8658Register_Tempearture_H, &buf[1], 1);
+    this->read_bytes(QMI8658Register_Tempearture_L, buf, 2);
     temp = ((int16_t) buf[1] << 8) | buf[0];
     temp_f = (float) temp / 256.0f;
     ESP_LOGD(TAG, "Temperature: %d °C", temp_f);
@@ -176,7 +175,7 @@ void QMI8658Component::update() {
     uint8_t buf_reg[6];
     int16_t raw_gyro_xyz[3];
 
-    this->read_register(QMI8658Register_Gx_L, buf_reg, 6);  // 0x1f, 31
+    this->read_bytes(QMI8658Register_Gx_L, buf_reg, 6);  // 0x1f, 31
     raw_gyro_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
     raw_gyro_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
     raw_gyro_xyz[2] = (int16_t) ((uint16_t) (buf_reg[5] << 8) | (buf_reg[4]));
