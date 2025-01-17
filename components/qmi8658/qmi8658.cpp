@@ -136,7 +136,7 @@ void QMI8658Component::update() {
         }
     }
     else{
-        if (throttle++ % 30 == 0) ESP_LOGE(TAG, "Data not ready");
+        if (throttle++ % 100 == 0) ESP_LOGE(TAG, "Data not ready");
     }
 }
 
