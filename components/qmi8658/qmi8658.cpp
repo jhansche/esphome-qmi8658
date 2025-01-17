@@ -27,19 +27,19 @@ void QMI8658Component::setup() {
 
   uint8_t read_data = 0x00;
   this->read_register(QMI8658Register_Ctrl1, &read_data, 1);
-  ESP_LOGI("QMI8658Register_Ctrl1 = %x", read_data);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl1 = %x", read_data);
   this->read_register(QMI8658Register_Ctrl2, &read_data, 1);
-  ESP_LOGI("QMI8658Register_Ctrl2 = %x", read_data);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl2 = %x", read_data);
   this->read_register(QMI8658Register_Ctrl3, &read_data, 1);
-  ESP_LOGI("QMI8658Register_Ctrl3 = %x", read_data);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl3 = %x", read_data);
   this->read_register(QMI8658Register_Ctrl4, &read_data, 1);
-  ESP_LOGI("QMI8658Register_Ctrl4 = %x", read_data);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl4 = %x", read_data);
   this->read_register(QMI8658Register_Ctrl5, &read_data, 1);
-  ESP_LOGI("QMI8658Register_Ctrl5 = %x", read_data);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl5 = %x", read_data);
   this->read_register(QMI8658Register_Ctrl6, &read_data, 1);
-  ESP_LOGI("QMI8658Register_Ctrl6 = %x", read_data);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl6 = %x", read_data);
   this->read_register(QMI8658Register_Ctrl7, &read_data, 1);
-  ESP_LOGI("QMI8658Register_Ctrl7 = %x", read_data);
+  ESP_LOGI(TAG, "QMI8658Register_Ctrl7 = %x", read_data);
 
   delay(10);
 
