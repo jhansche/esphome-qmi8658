@@ -158,10 +158,7 @@ CONFIG_SCHEMA = cv.All(
                 *QMI8658AccelODRs,
                 upper=True,
             ),
-            cv.Optional(CONF_ACCELERATION_LPF_MODE, default="0"): cv.one_of(
-                *QMI8658LpfModes,
-                upper=True,
-            ),
+            cv.Optional(CONF_ACCELERATION_LPF_MODE, default="true"): cv.boolean(),
             cv.Optional(CONF_GYROSCOPE_RANGE, default="512dps"): cv.one_of(
                 *QMI8658GyroRanges,
                 upper=True,
@@ -170,10 +167,7 @@ CONFIG_SCHEMA = cv.All(
                 *QMI8658GyroODRs,
                 upper=True,
             ),
-            cv.Optional(CONF_GYROSCOPE_LPF_MODE, default="3"): cv.one_of(
-                *QMI8658LpfModes,
-                upper=True,
-            ),
+            cv.Optional(CONF_GYROSCOPE_LPF_MODE, default="true"): cv.boolean(),
             cv.Optional(CONF_ACCELERATION_X): acceleration_schema,
             cv.Optional(CONF_ACCELERATION_Y): acceleration_schema,
             cv.Optional(CONF_ACCELERATION_Z): acceleration_schema,
@@ -203,11 +197,11 @@ async def to_code(config):
 
     cg.add(var.set_accel_range(QMI8658AccelRanges[config[CONF_ACCELERATION_RANGE]]))
     cg.add(var.set_accel_odr(QMI8658AccelODRs[config[CONF_ACCELERATION_ODR]]))
-    cg.add(var.set_accel_lpf_mode(QMI8658LpfModes[config[CONF_ACCELERATION_LPF_MODE]]))
+    cg.add(var.set_accel_lpf_mode(config[CONF_ACCELERATION_LPF_MODE]))
 
     cg.add(var.set_gyro_range(QMI8658GyroRanges[config[CONF_GYROSCOPE_RANGE]]))
     cg.add(var.set_gyro_odr(QMI8658GyroODRs[config[CONF_GYROSCOPE_ODR]]))
-    cg.add(var.set_gyro_lpf_mode(QMI8658LpfModes[config[CONF_GYROSCOPE_LPF_MODE]]))
+    cg.add(var.set_gyro_lpf_mode(config[CONF_GYROSCOPE_LPF_MODE]))
 
     if CONF_ACCELERATION_X in config:
         sens = await sensor.new_sensor(config[CONF_ACCELERATION_X])

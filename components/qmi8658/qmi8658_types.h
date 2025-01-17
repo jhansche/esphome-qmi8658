@@ -234,13 +234,6 @@ enum QMI8658_StConfig {
   QMI8658St_Enable   /*!< \brief Enable high pass filter. */
 };
 
-enum QMI8658_LpfModes {
-  QMI8658Lpf_Mode0,
-  QMI8658Lpf_Mode1,
-  QMI8658Lpf_Mode2,
-  QMI8658Lpf_Mode3,
-};
-
 enum QMI8658_LpfMode {
   A_LSP_MODE_0 = 0x00 << 1,
   A_LSP_MODE_1 = 0x01 << 1,
@@ -250,7 +243,9 @@ enum QMI8658_LpfMode {
   G_LSP_MODE_0 = 0x00 << 5,
   G_LSP_MODE_1 = 0x01 << 5,
   G_LSP_MODE_2 = 0x02 << 5,
-  G_LSP_MODE_3 = 0x03 << 5
+  G_LSP_MODE_3 = 0x03 << 5,
+
+  DISABLED = 0xff,
 };
 
 enum QMI8658_AccRange {
