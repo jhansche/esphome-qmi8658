@@ -15,6 +15,7 @@ namespace esphome {
 namespace qmi8658 {
 
 static const char *TAG = "qmi8658";
+static uint16_t throttle = 0;
 
 void QMI8658Component::setup() {
     // uint8_t sda_pin = this->bus_->sda_pin_;
@@ -135,7 +136,7 @@ void QMI8658Component::update() {
         }
     }
     else{
-        ESP_LOGE(TAG, "Data not ready");
+        if (throttle++ % 30 == 0) ESP_LOGE(TAG, "Data not ready");
     }
 }
 
