@@ -138,37 +138,26 @@ void QMI8658Component::update() {
 
   // Read accelerometer
   {
-    uint8_t buf_reg[6];
+    uint8_t buf_reg[2];
     int16_t raw_acc_xyz[3];
 
-    this->read_register(QMI8658Register_Ax_H, buf_reg, 6);  // 0x19, 25
-    ESP_LOGD(TAG, "Accel registers (Ax_H +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
-             buf_reg[3], buf_reg[4], buf_reg[5]);
-    this->read_register(QMI8658Register_Ay_L, buf_reg, 6);  // 0x19, 25
-    ESP_LOGD(TAG, "Accel registers (Ay_L +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
-             buf_reg[3], buf_reg[4], buf_reg[5]);
-
-    this->read_register(QMI8658Register_Ay_H, buf_reg, 6);  // 0x19, 25
-    ESP_LOGD(TAG, "Accel registers (Ay_H +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
-             buf_reg[3], buf_reg[4], buf_reg[5]);
-
-    this->read_register(QMI8658Register_Az_L, buf_reg, 6);  // 0x19, 25
-    ESP_LOGD(TAG, "Accel registers (Az_L +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
-             buf_reg[3], buf_reg[4], buf_reg[5]);
-    this->read_register(QMI8658Register_Az_H, buf_reg, 6);  // 0x19, 25
-    ESP_LOGD(TAG, "Accel registers (Az_H +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
-             buf_reg[3], buf_reg[4], buf_reg[5]);
-
-    this->read_register(QMI8658Register_Ax_L, buf_reg, 6);  // 0x19, 25
-    ESP_LOGD(TAG, "Accel registers (Ax_L +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
-             buf_reg[3], buf_reg[4], buf_reg[5]);
+    this->read_register(QMI8658Register_Ax_L, &buf_reg[0], 1);
+    this->read_register(QMI8658Register_Ax_H, &buf_reg[1], 1);
+    ESP_LOGD(TAG, "Accel registers (Ax_LH +2): %02x%02x", buf_reg[0], buf_reg[1]);
     raw_acc_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
-    raw_acc_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
-    raw_acc_xyz[2] = (int16_t) ((uint16_t) (buf_reg[5] << 8) | (buf_reg[4]));
-
     accel_data.x = (raw_acc_xyz[0] * ONE_G) / acc_lsb_div;
-    accel_data.y = (raw_acc_xyz[1] * ONE_G) / acc_lsb_div;
-    accel_data.z = (raw_acc_xyz[2] * ONE_G) / acc_lsb_div;
+
+    this->read_register(QMI8658Register_Ay_L, &buf_reg[0], 1);
+    this->read_register(QMI8658Register_Ay_H, &buf_reg[1], 1);
+    ESP_LOGD(TAG, "Accel registers (Ay_LH +2): %02x%02x", buf_reg[0], buf_reg[1]);
+    raw_acc_xyz[1] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
+    accel_data.y = (raw_acc_xyz[0] * ONE_G) / acc_lsb_div;
+
+    this->read_register(QMI8658Register_Az_L, &buf_reg[0], 1);
+    this->read_register(QMI8658Register_Az_H, &buf_reg[1], 1);
+    ESP_LOGD(TAG, "Accel registers (Az_LH +2): %02x%02x", buf_reg[0], buf_reg[1]);
+    raw_acc_xyz[2] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
+    accel_data.z = (raw_acc_xyz[0] * ONE_G) / acc_lsb_div;
 
     if (this->accel_x_sensor_ != nullptr) {
       accel_x_sensor_->publish_state(accel_data.x);
