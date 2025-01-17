@@ -17,11 +17,7 @@ namespace qmi8658 {
 static const char *TAG = "qmi8658";
 static uint16_t throttle = 0;
 
-void QMI8658Component::setup() {
-    uint8_t sda_pin = this->bus_->sda_pin_;
-    uint8_t scl_pin = this->bus_->scl_pin_;
-    ESP_LOGI(TAG, "SDA: %u   SCL: %u   Address: %x", sda_pin, scl_pin, this->address_);
- 
+void QMI8658Component::setup() { 
     // Wire.begin(I2C_SDA, I2C_SCL);
     // if (!qmi8658.begin(Wire, QMI8658_L_SLAVE_ADDRESS)) {
     if (!qmi8658.begin(Wire, QMI8658_L_SLAVE_ADDRESS, I2C_SDA, I2C_SCL)) {
@@ -75,6 +71,9 @@ void QMI8658Component::setup() {
 
 void QMI8658Component::dump_config() {
     ESP_LOGCONFIG(TAG, "QMI8658:");
+    ESP_LOGCONFIG(TAG, "SDA: %u   SCL: %u   Address: %x",
+        this->bus_->sda_pin_, this->bus_->scl_pin_, this->address_);
+
     LOG_I2C_DEVICE(this);
     if (this->is_failed()) {
         ESP_LOGE(TAG, "Communication with QMI8658 failed!");
