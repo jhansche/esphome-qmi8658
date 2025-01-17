@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef ONE_G
+#define ONE_G (9.807f)
+#endif
+
 #define QMI8658_CTRL7_DISABLE_ALL (0x0)
 #define QMI8658_CTRL7_ACC_ENABLE (0x1)
 #define QMI8658_CTRL7_GYR_ENABLE (0x2)

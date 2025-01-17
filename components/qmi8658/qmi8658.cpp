@@ -103,16 +103,36 @@ void QMI8658Component::update() {
     uint16_t temp = 0;
     float temp_f = 0;
 
-    this->read_register16(QMI8658Register_Tempearture_L, buf, 2);
+    this->read_register(QMI8658Register_Tempearture_L, buf, 2);
     temp = ((short) buf[1] << 8) | buf[0];
     temp_f = (float) temp / 256.0f;
+    ESP_LOGD(TAG, "Temperature: %d °C", temp_f);
     temperature_sensor_->publish_state(temp_f);
   }
-  // if (qmi8658.getDataReady()) {
-  //   float temperature = qmi8658.getTemperature_C();
-  //   ESP_LOGD(TAG, ">      %lu   %.2f ℃", qmi8658.getTimestamp(), temperature);
-  //   if (this->temperature_sensor_ != nullptr)
-  //     temperature_sensor_->publish_state(temperature);
+
+  {
+    uint8_t buf_reg[6];
+    int16_t raw_acc_xyz[3];
+
+    this->read_register(QMI8658Register_Ax_L, buf_reg, 6);  // 0x19, 25
+    raw_acc_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
+    raw_acc_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
+    raw_acc_xyz[2] = (int16_t) ((uint16_t) (buf_reg[5] << 8) | (buf_reg[4]));
+
+    accel_data.x = (raw_acc_xyz[0] * ONE_G) / acc_lsb_div;
+    accel_data.y = (raw_acc_xyz[1] * ONE_G) / acc_lsb_div;
+    accel_data.z = (raw_acc_xyz[2] * ONE_G) / acc_lsb_div;
+
+    if (this->accel_x_sensor_ != nullptr) {
+      accel_x_sensor_->publish_state(accel_data.x);
+    }
+    if (this->accel_y_sensor_ != nullptr) {
+      accel_y_sensor_->publish_state(accel_data.y);
+    }
+    if (this->accel_z_sensor_ != nullptr) {
+      accel_z_sensor_->publish_state(accel_data.z);
+    }
+  }
 
   //   if (qmi8658.getAccelerometer(accel_data.x, accel_data.y, accel_data.z)) {
   //     ESP_LOGD(TAG, "ACCEL:  %f  %f  %f", accel_data.x, accel_data.y, accel_data.z);
