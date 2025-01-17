@@ -59,9 +59,9 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   IMUdata accel_data;
   IMUdata gyro_data;
 };
-typedef struct {
+typedef struct IMUdata {
   /* data */
-} IMUdata;
+};
 
 }  // namespace qmi8658
 }  // namespace esphome

@@ -12,8 +12,8 @@ static const char *TAG = "qmi8658";
 void QMI8658Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up QMI8658...");
 
-  unsigned char QMI8658_chip_id = 0x00;
-  unsigned char QMI8658_revision_id = 0x00;
+  uint8_t QMI8658_chip_id = 0x00;
+  uint8_t QMI8658_revision_id = 0x00;
   this->read_register(QMI8658Register_WhoAmI, &QMI8658_chip_id, 1);
 
   if (QMI8658_chip_id != 0x05) {
@@ -25,7 +25,7 @@ void QMI8658Component::setup() {
 
   ESP_LOGCONFIG(TAG, "qmi8658 chip %x, rev %x", QMI8658_chip_id, QMI8658_revision_id);
 
-  unsigned char read_data = 0x00;
+  uint8_t read_data = 0x00;
   this->read_register(QMI8658Register_Ctrl1, &read_data, 1);
   ESP_LOGI("QMI8658Register_Ctrl1 = %x", read_data);
   this->read_register(QMI8658Register_Ctrl2, &read_data, 1);
