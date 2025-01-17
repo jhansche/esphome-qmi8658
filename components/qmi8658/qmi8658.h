@@ -118,8 +118,8 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   sensor::Sensor *gyro_z_sensor_{nullptr};
   sensor::Sensor *temperature_sensor_{nullptr};
 
-  IMUdata accel_data;
-  IMUdata gyro_data;
+  IMUdata accel_data {};
+  IMUdata gyro_data {};
 };
 
 }  // namespace qmi8658
