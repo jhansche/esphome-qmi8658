@@ -8,8 +8,8 @@
 #include <cmath>
 
 // TODO: How to get this from i2c bus instead of hard-coded?
-#define I2C_SDA       11
-#define I2C_SCL       12
+#define I2C_SDA       4
+#define I2C_SCL       5
 
 namespace esphome {
 namespace qmi8658 {
