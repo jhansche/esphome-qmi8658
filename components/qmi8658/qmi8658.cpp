@@ -18,16 +18,16 @@ static const char *TAG = "qmi8658";
 static uint16_t throttle = 0;
 
 void QMI8658Component::setup() {
-    // uint8_t sda_pin = this->bus_->sda_pin_;
-    // uint8_t scl_pin = this->bus_->scl_pin_;
-    // ESP_LOGI(TAG, "SDA: %u   SCL: %u", sda_pin, scl_pin);
+    uint8_t sda_pin = this->bus_->sda_pin_;
+    uint8_t scl_pin = this->bus_->scl_pin_;
+    ESP_LOGI(TAG, "SDA: %u   SCL: %u   Address: %x", sda_pin, scl_pin, this->address_);
  
     // Wire.begin(I2C_SDA, I2C_SCL);
     // if (!qmi8658.begin(Wire, QMI8658_L_SLAVE_ADDRESS)) {
     if (!qmi8658.begin(Wire, QMI8658_L_SLAVE_ADDRESS, I2C_SDA, I2C_SCL)) {
         ESP_LOGE(TAG, "Failed to find QMI8658 - check your wiring!");
     }
-    ESP_LOGI(TAG, "Device ID: %x",qmi8658.getChipID());
+    ESP_LOGI(TAG, "Device ID: %x", qmi8658.getChipID());
     
     qmi8658.configAccelerometer(
         this->accel_range_,
