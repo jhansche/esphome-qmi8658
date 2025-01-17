@@ -10,6 +10,12 @@
 namespace esphome {
 namespace qmi8658 {
 
+typedef struct __IMUdata {
+  float x;
+  float y;
+  float z;
+} IMUdata;
+
 class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
  public:
   void setup() override;
@@ -58,9 +64,6 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
 
   IMUdata accel_data;
   IMUdata gyro_data;
-};
-typedef struct IMUdata {
-  /* data */
 };
 
 }  // namespace qmi8658
