@@ -146,7 +146,7 @@ void QMI8658Component::update() {
 
     this->read_bytes(QMI8658Register_Ax_L, buf_reg, 6);
     ESP_LOGD(TAG, "Accel registers (Ay_LH +6): %02x%02x %02x%02x %02x%02x", buf_reg[0], buf_reg[1], buf_reg[2],
-             buf_reg[3] buf_reg[4], buf_reg[5]);
+             buf_reg[3], buf_reg[4], buf_reg[5]);
     raw_acc_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
     accel_data.x = (raw_acc_xyz[0] * ONE_G) / acc_lsb_div;
     raw_acc_xyz[1] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
