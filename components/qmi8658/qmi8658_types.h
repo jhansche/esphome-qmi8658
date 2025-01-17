@@ -245,7 +245,7 @@ enum QMI8658_LpfMode {
   G_LSP_MODE_2 = 0x02 << 5,
   G_LSP_MODE_3 = 0x03 << 5,
 
-  DISABLED = 0xff,
+  LPF_DISABLED = 0xff,
 };
 
 enum QMI8658_AccRange {
