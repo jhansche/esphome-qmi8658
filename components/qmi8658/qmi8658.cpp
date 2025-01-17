@@ -140,7 +140,7 @@ void QMI8658Component::update() {
     }
 }
 
-float QMI8658Component::get_setup_priority() const { return setup_priority::DATA; }
+float QMI8658Component::get_setup_priority() const { return setup_priority::PROCESSOR; }
 
 }  // namespace qmi8658
 }  // namespace esphome
