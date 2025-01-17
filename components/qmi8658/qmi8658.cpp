@@ -1,6 +1,7 @@
 #include "qmi8658.h"
 
 #include "esphome/core/log.h"
+#include "esphome/components/i2c/i2c.h"
 
 // #include <Arduino.h>
 // #include <Wire.h>
@@ -71,8 +72,9 @@ void QMI8658Component::setup() {
 
 void QMI8658Component::dump_config() {
     ESP_LOGCONFIG(TAG, "QMI8658:");
+    ArduinoI2CBus *derived = dynamic_cast<ArduinoI2CBus*>(this->bus_);
     ESP_LOGCONFIG(TAG, "SDA: %u   SCL: %u   Address: %x",
-        this->bus_->sda_pin_, this->bus_->scl_pin_, this->address_);
+        derived->sda_pin_, derived->scl_pin_, this->address_);
 
     LOG_I2C_DEVICE(this);
     if (this->is_failed()) {
