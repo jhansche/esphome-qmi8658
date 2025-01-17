@@ -158,7 +158,7 @@ CONFIG_SCHEMA = cv.All(
                 *QMI8658AccelODRs,
                 upper=True,
             ),
-            cv.Optional(CONF_ACCELERATION_LPF_MODE, default="true"): cv.boolean(),
+            cv.Optional(CONF_ACCELERATION_LPF_MODE, default="true"): cv.boolean,
             cv.Optional(CONF_GYROSCOPE_RANGE, default="512dps"): cv.one_of(
                 *QMI8658GyroRanges,
                 upper=True,
@@ -167,7 +167,7 @@ CONFIG_SCHEMA = cv.All(
                 *QMI8658GyroODRs,
                 upper=True,
             ),
-            cv.Optional(CONF_GYROSCOPE_LPF_MODE, default="true"): cv.boolean(),
+            cv.Optional(CONF_GYROSCOPE_LPF_MODE, default="true"): cv.boolean,
             cv.Optional(CONF_ACCELERATION_X): acceleration_schema,
             cv.Optional(CONF_ACCELERATION_Y): acceleration_schema,
             cv.Optional(CONF_ACCELERATION_Z): acceleration_schema,
