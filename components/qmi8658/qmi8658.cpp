@@ -98,6 +98,7 @@ void QMI8658Component::loop() {
 }
 
 void QMI8658Component::update() {
+  // Read temperature
   if (this->temperature_sensor_ != nullptr) {
     uint8_t buf[2];
     uint16_t temp = 0;
@@ -110,6 +111,7 @@ void QMI8658Component::update() {
     temperature_sensor_->publish_state(temp_f);
   }
 
+  // Read accelerometer
   {
     uint8_t buf_reg[6];
     int16_t raw_acc_xyz[3];
@@ -134,29 +136,30 @@ void QMI8658Component::update() {
     }
   }
 
-  //   if (qmi8658.getAccelerometer(accel_data.x, accel_data.y, accel_data.z)) {
-  //     ESP_LOGD(TAG, "ACCEL:  %f  %f  %f", accel_data.x, accel_data.y, accel_data.z);
-  //     if (this->accel_x_sensor_ != nullptr)
-  //       accel_x_sensor_->publish_state(accel_data.x);
-  //     if (this->accel_y_sensor_ != nullptr)
-  //       accel_y_sensor_->publish_state(accel_data.y);
-  //     if (this->accel_z_sensor_ != nullptr)
-  //       accel_z_sensor_->publish_state(accel_data.z);
-  //   }
+  // Read gyro
+  {
+    uint8_t buf_reg[6];
+    int16_t raw_gyro_xyz[3];
 
-  //   if (qmi8658.getGyroscope(gyro_data.x, gyro_data.y, gyro_data.z)) {
-  //     ESP_LOGD(TAG, "GYRO:  %f  %f  %f", gyro_data.x, gyro_data.y, gyro_data.z);
-  //     if (this->gyro_x_sensor_ != nullptr)
-  //       this->gyro_x_sensor_->publish_state(gyro_data.x);
-  //     if (this->gyro_y_sensor_ != nullptr)
-  //       this->gyro_y_sensor_->publish_state(gyro_data.y);
-  //     if (this->gyro_z_sensor_ != nullptr)
-  //       this->gyro_z_sensor_->publish_state(gyro_data.z);
-  //   }
-  // } else {
-  //   if (throttle++ % 100 == 0)
-  //     ESP_LOGE(TAG, "Data not ready");
-  // }
+    this->read_register(QMI8658Register_Gx_L, buf_reg, 6);  // 0x1f, 31
+    raw_gyro_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
+    raw_gyro_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
+    raw_gyro_xyz[2] = (int16_t) ((uint16_t) (buf_reg[5] << 8) | (buf_reg[4]));
+
+    this->gyro_data.x = (raw_gyro_xyz[0] * 1.0f) / gyro_lsb_div;
+    this->gyro_data.y = (raw_gyro_xyz[1] * 1.0f) / gyro_lsb_div;
+    this->gyro_data.z = (raw_gyro_xyz[2] * 1.0f) / gyro_lsb_div;
+
+    if (this->gyro_x_sensor_ != nullptr) {
+      this->gyro_x_sensor_->publish_state(gyro_data.x);
+    }
+    if (this->gyro_y_sensor_ != nullptr) {
+      this->gyro_y_sensor_->publish_state(gyro_data.y);
+    }
+    if (this->gyro_z_sensor_ != nullptr) {
+      this->gyro_z_sensor_->publish_state(gyro_data.z);
+    }
+  }
 }
 
 float QMI8658Component::get_setup_priority() const { return setup_priority::PROCESSOR; }
