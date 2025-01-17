@@ -5,60 +5,95 @@
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/i2c/i2c.h"
 
-#include "SensorQMI8658.hpp"
+#include "qmi8658_types.h"
 
 namespace esphome {
 namespace qmi8658 {
 
 class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
-    public:
-        void setup() override;
-        void dump_config() override;
-        void update() override;
-        void loop() override;
+ public:
+  void setup() override;
+  void dump_config() override;
+  void update() override;
+  void loop() override;
 
-        float get_setup_priority() const override;
+  float get_setup_priority() const override;
 
-        void set_accel_range(SensorQMI8658::AccelRange accel_range) { accel_range_ = accel_range; }
-        void set_accel_odr(SensorQMI8658::AccelODR accel_odr) { accel_odr_ = accel_odr; }
-        void set_accel_lpf_mode(SensorQMI8658::LpfMode accel_lpf_mode) { accel_lpf_mode_ = accel_lpf_mode; }
+  void set_accel_range(QMI8658_AccRange accel_range) { accel_range_ = accel_range; }
+  void set_accel_odr(QMI8658_AccOdr accel_odr) { accel_odr_ = accel_odr; }
+  void set_accel_lpf_mode(QMI8658_LpfModes accel_lpf_mode) {
+    switch (accel_lpf_mode) {
+      case QMI8658Lpf_Mode0:
+        accel_lpf_mode_ = A_LSP_MODE_0;
+        break;
+      case QMI8658Lpf_Mode1:
+        accel_lpf_mode_ = A_LSP_MODE_1;
+        break;
+      case QMI8658Lpf_Mode2:
+        accel_lpf_mode_ = A_LSP_MODE_2;
+        break;
+      case QMI8658Lpf_Mode3:
+        accel_lpf_mode_ = A_LSP_MODE_3;
+        break;
 
-        void set_gyro_range(SensorQMI8658::GyroRange gyro_range) { gyro_range_ = gyro_range; }
-        void set_gyro_odr(SensorQMI8658::GyroODR gyro_odr) { gyro_odr_ = gyro_odr; }
-        void set_gyro_lpf_mode(SensorQMI8658::LpfMode gyro_lpf_mode) { gyro_lpf_mode_ = gyro_lpf_mode; }
+      default:
+        break;
+    }
+  }
 
-        void set_interrupt_pin_1(GPIOPin *interrupt_pin) { interrupt_pin_1_ = interrupt_pin; }
-        void set_interrupt_pin_2(GPIOPin *interrupt_pin) { interrupt_pin_2_ = interrupt_pin; }
-        void set_accel_x_sensor(sensor::Sensor *accel_x_sensor) { accel_x_sensor_ = accel_x_sensor; }
-        void set_accel_y_sensor(sensor::Sensor *accel_y_sensor) { accel_y_sensor_ = accel_y_sensor; }
-        void set_accel_z_sensor(sensor::Sensor *accel_z_sensor) { accel_z_sensor_ = accel_z_sensor; }
-        void set_gyro_x_sensor(sensor::Sensor *gyro_x_sensor) { gyro_x_sensor_ = gyro_x_sensor; }
-        void set_gyro_y_sensor(sensor::Sensor *gyro_y_sensor) { gyro_y_sensor_ = gyro_y_sensor; }
-        void set_gyro_z_sensor(sensor::Sensor *gyro_z_sensor) { gyro_z_sensor_ = gyro_z_sensor; }
-        void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
+  void set_gyro_range(QMI8658_GyrRange gyro_range) { gyro_range_ = gyro_range; }
+  void set_gyro_odr(QMI8658_GyrOdr gyro_odr) { gyro_odr_ = gyro_odr; }
+  void set_gyro_lpf_mode(QMI8658_LpfModes gyro_lpf_mode) {
+    switch (gyro_lpf_mode) {
+      case QMI8658Lpf_Mode0:
+        gyro_lpf_mode_ = G_LSP_MODE_0;
+        break;
+      case QMI8658Lpf_Mode1:
+        gyro_lpf_mode_ = G_LSP_MODE_1;
+        break;
+      case QMI8658Lpf_Mode2:
+        gyro_lpf_mode_ = G_LSP_MODE_2;
+        break;
+      case QMI8658Lpf_Mode3:
+        gyro_lpf_mode_ = G_LSP_MODE_3;
+        break;
 
-    protected:
-        SensorQMI8658::AccelRange accel_range_;
-        SensorQMI8658::AccelODR accel_odr_;
-        SensorQMI8658::LpfMode accel_lpf_mode_;
+      default:
+        break;
+    };
+  }
 
-        SensorQMI8658::GyroRange gyro_range_;
-        SensorQMI8658::GyroODR gyro_odr_;
-        SensorQMI8658::LpfMode gyro_lpf_mode_;
+  void set_interrupt_pin_1(GPIOPin *interrupt_pin) { interrupt_pin_1_ = interrupt_pin; }
+  void set_interrupt_pin_2(GPIOPin *interrupt_pin) { interrupt_pin_2_ = interrupt_pin; }
+  void set_accel_x_sensor(sensor::Sensor *accel_x_sensor) { accel_x_sensor_ = accel_x_sensor; }
+  void set_accel_y_sensor(sensor::Sensor *accel_y_sensor) { accel_y_sensor_ = accel_y_sensor; }
+  void set_accel_z_sensor(sensor::Sensor *accel_z_sensor) { accel_z_sensor_ = accel_z_sensor; }
+  void set_gyro_x_sensor(sensor::Sensor *gyro_x_sensor) { gyro_x_sensor_ = gyro_x_sensor; }
+  void set_gyro_y_sensor(sensor::Sensor *gyro_y_sensor) { gyro_y_sensor_ = gyro_y_sensor; }
+  void set_gyro_z_sensor(sensor::Sensor *gyro_z_sensor) { gyro_z_sensor_ = gyro_z_sensor; }
+  void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
 
-        GPIOPin *interrupt_pin_1_{nullptr};
-        GPIOPin *interrupt_pin_2_{nullptr};
-        sensor::Sensor *accel_x_sensor_{nullptr};
-        sensor::Sensor *accel_y_sensor_{nullptr};
-        sensor::Sensor *accel_z_sensor_{nullptr};
-        sensor::Sensor *gyro_x_sensor_{nullptr};
-        sensor::Sensor *gyro_y_sensor_{nullptr};
-        sensor::Sensor *gyro_z_sensor_{nullptr};
-        sensor::Sensor *temperature_sensor_{nullptr};
+ protected:
+  QMI8658_AccRange accel_range_;
+  QMI8658_AccOdr accel_odr_;
+  QMI8658_LpfMode accel_lpf_mode_;
 
-        SensorQMI8658 qmi8658;
-        IMUdata accel_data;
-        IMUdata gyro_data;
+  QMI8658_GyrRange gyro_range_;
+  QMI8658_GyrOdr gyro_odr_;
+  QMI8658_LpfMode gyro_lpf_mode_;
+
+  GPIOPin *interrupt_pin_1_{nullptr};
+  GPIOPin *interrupt_pin_2_{nullptr};
+  sensor::Sensor *accel_x_sensor_{nullptr};
+  sensor::Sensor *accel_y_sensor_{nullptr};
+  sensor::Sensor *accel_z_sensor_{nullptr};
+  sensor::Sensor *gyro_x_sensor_{nullptr};
+  sensor::Sensor *gyro_y_sensor_{nullptr};
+  sensor::Sensor *gyro_z_sensor_{nullptr};
+  sensor::Sensor *temperature_sensor_{nullptr};
+
+  IMUdata accel_data;
+  IMUdata gyro_data;
 };
 
 }  // namespace qmi8658

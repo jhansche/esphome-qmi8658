@@ -2,143 +2,146 @@
 
 #include "esphome/core/log.h"
 #include "esphome/components/i2c/i2c.h"
-
-// #include <Arduino.h>
-// #include <Wire.h>
-#include "SensorQMI8658.hpp"                    
 #include <cmath>
-
-// TODO: How to get this from i2c bus instead of hard-coded?
-#define I2C_SDA       4
-#define I2C_SCL       5
 
 namespace esphome {
 namespace qmi8658 {
 
 static const char *TAG = "qmi8658";
-static uint16_t throttle = 0;
 
-void QMI8658Component::setup() { 
-    // Wire.begin(I2C_SDA, I2C_SCL);
-    // if (!qmi8658.begin(Wire, QMI8658_L_SLAVE_ADDRESS)) {
-    if (!qmi8658.begin(Wire, QMI8658_L_SLAVE_ADDRESS, I2C_SDA, I2C_SCL)) {
-        ESP_LOGE(TAG, "Failed to find QMI8658 - check your wiring!");
-    }
-    ESP_LOGI(TAG, "Device ID: %x", qmi8658.getChipID());
-    
-    qmi8658.configAccelerometer(
-        this->accel_range_,
-        this->accel_odr_,
-        this->accel_lpf_mode_);
-    qmi8658.configGyroscope(
-        this->gyro_range_,
-        this->gyro_odr_,
-        this->gyro_lpf_mode_);
+void QMI8658Component::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up QMI8658...");
 
-    if (this->interrupt_pin_1_ != nullptr)  // Don't seem to work very well? Use interrupt 2
-    {
-        this->interrupt_pin_1_->setup();
-        qmi8658.enableINT(SensorQMI8658::INTERRUPT_PIN_1);
-        qmi8658.enableDataReadyINT();
-        ESP_LOGI(TAG, "Interrupt 1 enabled");
-    }
-    if (this->interrupt_pin_2_ != nullptr)
-    {
-        this->interrupt_pin_2_->setup();
-        qmi8658.enableINT(SensorQMI8658::INTERRUPT_PIN_2);
-        qmi8658.enableDataReadyINT();
-        ESP_LOGI(TAG, "Interrupt 2 enabled");
-    }
+  unsigned char QMI8658_chip_id = 0x00;
+  unsigned char QMI8658_revision_id = 0x00;
+  this->read_register(QMI8658Register_WhoAmI, &QMI8658_chip_id, 1);
 
-    // TODO: Disable polling when using interrupt?
-    // if (this->interrupt_pin_1_ != nullptr || this->interrupt_pin_2_ != nullptr)
-    // {}
+  if (QMI8658_chip_id != 0x05) {
+    ESP_LOGE(TAG, "Unrecognized chip id %x", QMI8658_chip_id);
+    this->mark_failed();
+    return;
+  }
+  this->read_register(QMI8658Register_Revision, &QMI8658_revision_id, 1);
 
-    if (this->accel_x_sensor_ != nullptr || this->accel_y_sensor_ != nullptr || this->accel_z_sensor_ != nullptr)
-    {
-        ESP_LOGI(TAG, "Enabling Accelerometer");
-        qmi8658.enableAccelerometer();
-    }
+  ESP_LOGCONFIG(TAG, "qmi8658 chip %x, rev %x", QMI8658_chip_id, QMI8658_revision_id);
 
-    if (this->gyro_x_sensor_ != nullptr || this->gyro_y_sensor_ != nullptr || this->gyro_z_sensor_ != nullptr)
-    {
-        ESP_LOGI(TAG, "Enabling Gyroscope");
-        qmi8658.enableGyroscope();
-    }
+  unsigned char read_data = 0x00;
+  this->read_register(QMI8658Register_Ctrl1, &read_data, 1);
+  ESP_LOGI("QMI8658Register_Ctrl1 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl2, &read_data, 1);
+  ESP_LOGI("QMI8658Register_Ctrl2 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl3, &read_data, 1);
+  ESP_LOGI("QMI8658Register_Ctrl3 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl4, &read_data, 1);
+  ESP_LOGI("QMI8658Register_Ctrl4 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl5, &read_data, 1);
+  ESP_LOGI("QMI8658Register_Ctrl5 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl6, &read_data, 1);
+  ESP_LOGI("QMI8658Register_Ctrl6 = %x", read_data);
+  this->read_register(QMI8658Register_Ctrl7, &read_data, 1);
+  ESP_LOGI("QMI8658Register_Ctrl7 = %x", read_data);
 
-    // TODO: Need to define the log_e log_i, log_d functions to use native ESPHome loggers
-    // qmi8658.dumpCtrlRegister();               // printf register configuration information
+  delay(10);
+
+  // TODO: configure
+  // qmi8658.configAccelerometer(this->accel_range_, this->accel_odr_, this->accel_lpf_mode_);
+  // qmi8658.configGyroscope(this->gyro_range_, this->gyro_odr_, this->gyro_lpf_mode_);
+
+  // if (this->interrupt_pin_1_ != nullptr)  // Don't seem to work very well? Use interrupt 2
+  // {
+  //   this->interrupt_pin_1_->setup();
+  //   qmi8658.enableINT(SensorQMI8658::INTERRUPT_PIN_1);
+  //   qmi8658.enableDataReadyINT();
+  //   ESP_LOGI(TAG, "Interrupt 1 enabled");
+  // }
+  // if (this->interrupt_pin_2_ != nullptr) {
+  //   this->interrupt_pin_2_->setup();
+  //   qmi8658.enableINT(SensorQMI8658::INTERRUPT_PIN_2);
+  //   qmi8658.enableDataReadyINT();
+  //   ESP_LOGI(TAG, "Interrupt 2 enabled");
+  // }
+
+  // // TODO: Disable polling when using interrupt?
+  // // if (this->interrupt_pin_1_ != nullptr || this->interrupt_pin_2_ != nullptr)
+  // // {}
+
+  // if (this->accel_x_sensor_ != nullptr || this->accel_y_sensor_ != nullptr || this->accel_z_sensor_ != nullptr) {
+  //   ESP_LOGI(TAG, "Enabling Accelerometer");
+  //   qmi8658.enableAccelerometer();
+  // }
+
+  // if (this->gyro_x_sensor_ != nullptr || this->gyro_y_sensor_ != nullptr || this->gyro_z_sensor_ != nullptr) {
+  //   ESP_LOGI(TAG, "Enabling Gyroscope");
+  //   qmi8658.enableGyroscope();
+  // }
+
+  // // TODO: Need to define the log_e log_i, log_d functions to use native ESPHome loggers
+  // // qmi8658.dumpCtrlRegister();               // printf register configuration information
 }
 
 void QMI8658Component::dump_config() {
-    ESP_LOGCONFIG(TAG, "QMI8658:");
-    ArduinoI2CBus *derived = dynamic_cast<ArduinoI2CBus*>(this->bus_);
-    ESP_LOGCONFIG(TAG, "SDA: %u   SCL: %u   Address: %x",
-        derived->sda_pin_, derived->scl_pin_, this->address_);
-
-    LOG_I2C_DEVICE(this);
-    if (this->is_failed()) {
-        ESP_LOGE(TAG, "Communication with QMI8658 failed!");
-    }
-    LOG_UPDATE_INTERVAL(this);
-    LOG_PIN("  Interrupt pin 1: ", this->interrupt_pin_1_);
-    LOG_PIN("  Interrupt pin 2: ", this->interrupt_pin_2_);
-    LOG_SENSOR("  ", "Acceleration X", this->accel_x_sensor_);
-    LOG_SENSOR("  ", "Acceleration Y", this->accel_y_sensor_);
-    LOG_SENSOR("  ", "Acceleration Z", this->accel_z_sensor_);
-    LOG_SENSOR("  ", "Gyro X", this->gyro_x_sensor_);
-    LOG_SENSOR("  ", "Gyro Y", this->gyro_y_sensor_);
-    LOG_SENSOR("  ", "Gyro Z", this->gyro_z_sensor_);
-    LOG_SENSOR("  ", "Temperature", this->temperature_sensor_);
+  ESP_LOGCONFIG(TAG, "QMI8658:");
+  LOG_I2C_DEVICE(this);
+  if (this->is_failed()) {
+    ESP_LOGE(TAG, "Communication with QMI8658 failed!");
+  }
+  LOG_UPDATE_INTERVAL(this);
+  LOG_PIN("  Interrupt pin 1: ", this->interrupt_pin_1_);
+  LOG_PIN("  Interrupt pin 2: ", this->interrupt_pin_2_);
+  LOG_SENSOR("  ", "Acceleration X", this->accel_x_sensor_);
+  LOG_SENSOR("  ", "Acceleration Y", this->accel_y_sensor_);
+  LOG_SENSOR("  ", "Acceleration Z", this->accel_z_sensor_);
+  LOG_SENSOR("  ", "Gyro X", this->gyro_x_sensor_);
+  LOG_SENSOR("  ", "Gyro Y", this->gyro_y_sensor_);
+  LOG_SENSOR("  ", "Gyro Z", this->gyro_z_sensor_);
+  LOG_SENSOR("  ", "Temperature", this->temperature_sensor_);
 }
 
 void QMI8658Component::loop() {
-    PollingComponent::loop();
+  PollingComponent::loop();
 
-    if (this->interrupt_pin_1_ != nullptr)
-    {
-        bool interrupt = this->interrupt_pin_1_->digital_read();
-        if (interrupt)
-            this->update();
-    }
-    if (this->interrupt_pin_2_ != nullptr)
-    {
-        bool interrupt = this->interrupt_pin_2_->digital_read();
-        if (interrupt)
-            this->update();
-    }
+  if (this->interrupt_pin_1_ != nullptr) {
+    bool interrupt = this->interrupt_pin_1_->digital_read();
+    if (interrupt)
+      this->update();
+  }
+  if (this->interrupt_pin_2_ != nullptr) {
+    bool interrupt = this->interrupt_pin_2_->digital_read();
+    if (interrupt)
+      this->update();
+  }
 }
 
 void QMI8658Component::update() {
-    if (qmi8658.getDataReady()) {
-        float temperature = qmi8658.getTemperature_C();
-        ESP_LOGD(TAG, ">      %lu   %.2f ℃", qmi8658.getTimestamp(), temperature);
-        if (this->temperature_sensor_ != nullptr)
-            temperature_sensor_->publish_state(temperature);
+  // if (qmi8658.getDataReady()) {
+  //   float temperature = qmi8658.getTemperature_C();
+  //   ESP_LOGD(TAG, ">      %lu   %.2f ℃", qmi8658.getTimestamp(), temperature);
+  //   if (this->temperature_sensor_ != nullptr)
+  //     temperature_sensor_->publish_state(temperature);
 
-        if (qmi8658.getAccelerometer(accel_data.x, accel_data.y, accel_data.z)) {
-            ESP_LOGD(TAG, "ACCEL:  %f  %f  %f", accel_data.x, accel_data.y, accel_data.z);
-            if (this->accel_x_sensor_ != nullptr)
-                accel_x_sensor_->publish_state(accel_data.x);
-            if (this->accel_y_sensor_ != nullptr)
-                accel_y_sensor_->publish_state(accel_data.y);
-            if (this->accel_z_sensor_ != nullptr)
-                accel_z_sensor_->publish_state(accel_data.z);
-        }
+  //   if (qmi8658.getAccelerometer(accel_data.x, accel_data.y, accel_data.z)) {
+  //     ESP_LOGD(TAG, "ACCEL:  %f  %f  %f", accel_data.x, accel_data.y, accel_data.z);
+  //     if (this->accel_x_sensor_ != nullptr)
+  //       accel_x_sensor_->publish_state(accel_data.x);
+  //     if (this->accel_y_sensor_ != nullptr)
+  //       accel_y_sensor_->publish_state(accel_data.y);
+  //     if (this->accel_z_sensor_ != nullptr)
+  //       accel_z_sensor_->publish_state(accel_data.z);
+  //   }
 
-        if (qmi8658.getGyroscope(gyro_data.x, gyro_data.y, gyro_data.z)) {
-            ESP_LOGD(TAG, "GYRO:  %f  %f  %f", gyro_data.x, gyro_data.y, gyro_data.z);
-            if (this->gyro_x_sensor_ != nullptr)
-                this->gyro_x_sensor_->publish_state(gyro_data.x);
-            if (this->gyro_y_sensor_ != nullptr)
-                this->gyro_y_sensor_->publish_state(gyro_data.y);
-            if (this->gyro_z_sensor_ != nullptr)
-                this->gyro_z_sensor_->publish_state(gyro_data.z);
-        }
-    }
-    else{
-        if (throttle++ % 100 == 0) ESP_LOGE(TAG, "Data not ready");
-    }
+  //   if (qmi8658.getGyroscope(gyro_data.x, gyro_data.y, gyro_data.z)) {
+  //     ESP_LOGD(TAG, "GYRO:  %f  %f  %f", gyro_data.x, gyro_data.y, gyro_data.z);
+  //     if (this->gyro_x_sensor_ != nullptr)
+  //       this->gyro_x_sensor_->publish_state(gyro_data.x);
+  //     if (this->gyro_y_sensor_ != nullptr)
+  //       this->gyro_y_sensor_->publish_state(gyro_data.y);
+  //     if (this->gyro_z_sensor_ != nullptr)
+  //       this->gyro_z_sensor_->publish_state(gyro_data.z);
+  //   }
+  // } else {
+  //   if (throttle++ % 100 == 0)
+  //     ESP_LOGE(TAG, "Data not ready");
+  // }
 }
 
 float QMI8658Component::get_setup_priority() const { return setup_priority::PROCESSOR; }

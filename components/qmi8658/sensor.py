@@ -42,60 +42,64 @@ QMI8658Component = qmi8658_ns.class_(
     "QMI8658Component", cg.PollingComponent, i2c.I2CDevice
 )
 
-SensorQMI8658_ns = cg.esphome_ns.namespace("SensorQMI8658")
-
-QMI8658AccelRange = SensorQMI8658_ns.enum("AccelRange")
+QMI8658AccelRange = qmi8658_ns.enum("QMI8658_AccRange")
 QMI8658AccelRanges = {
-    "2G":  QMI8658AccelRange.ACC_RANGE_2G,
-    "4G":  QMI8658AccelRange.ACC_RANGE_4G,
-    "8G":  QMI8658AccelRange.ACC_RANGE_8G,
-    "16G": QMI8658AccelRange.ACC_RANGE_16G,
+    "2G": QMI8658AccelRange.QMI8658AccRange_2g,
+    "4G": QMI8658AccelRange.QMI8658AccRange_4g,
+    "8G": QMI8658AccelRange.QMI8658AccRange_8g,
+    "16G": QMI8658AccelRange.QMI8658AccRange_16g,
 }
 
-QMI8658AccelODR = SensorQMI8658_ns.enum("AccelOdr")
+QMI8658AccelODR = qmi8658_ns.enum("QMI8658_AccOdr")
 QMI8658AccelODRs = {
-    "1000HZ":   QMI8658AccelODR.ACC_ODR_1000Hz,
-    "500HZ":    QMI8658AccelODR.ACC_ODR_500Hz,
-    "125HZ":    QMI8658AccelODR.ACC_ODR_125Hz,
-    "62.5HZ":   QMI8658AccelODR.ACC_ODR_62_5Hz,
-    "31.25HZ":  QMI8658AccelODR.ACC_ODR_31_25Hz,
-    "LP_125HZ": QMI8658AccelODR.ACC_ODR_LOWPOWER_128Hz,
-    "LP_21HZ":  QMI8658AccelODR.ACC_ODR_LOWPOWER_21Hz,
-    "LP_11HZ":  QMI8658AccelODR.ACC_ODR_LOWPOWER_11Hz,
-    "LP_3HZ":   QMI8658AccelODR.ACC_ODR_LOWPOWER_3Hz,
+    "8KHz": QMI8658AccelODR.QMI8658AccOdr_8000Hz,
+    "4KHz": QMI8658AccelODR.QMI8658AccOdr_4000Hz,
+    "2KHz": QMI8658AccelODR.QMI8658AccOdr_2000Hz,
+    "1KHz": QMI8658AccelODR.QMI8658AccOdr_1000Hz,
+    "500Hz": QMI8658AccelODR.QMI8658AccOdr_500Hz,
+    "250Hz": QMI8658AccelODR.QMI8658AccOdr_250Hz,
+    "125Hz": QMI8658AccelODR.QMI8658AccOdr_125Hz,
+    "62.5Hz": QMI8658AccelODR.QMI8658AccOdr_62_5Hz,
+    "31.25Hz": QMI8658AccelODR.QMI8658AccOdr_31_25Hz,
+    "LP_128Hz": QMI8658AccelODR.QMI8658AccOdr_LowPower_128Hz,
+    "LP_21Hz": QMI8658AccelODR.QMI8658AccOdr_LowPower_21Hz,
+    "LP_11Hz": QMI8658AccelODR.QMI8658AccOdr_LowPower_11Hz,
+    "LP_3Hz": QMI8658AccelODR.QMI8658AccOdr_LowPower_3Hz,
 }
 
-QMI8658GyroRange = SensorQMI8658_ns.enum("GyroRange")
+QMI8658GyroRange = qmi8658_ns.enum("QMI8658_GyrRange")
 QMI8658GyroRanges = {
-    "16DPS":   QMI8658GyroRange.GYR_RANGE_16DPS,
-    "32DPS":   QMI8658GyroRange.GYR_RANGE_32DPS,
-    "64DPS":   QMI8658GyroRange.GYR_RANGE_64DPS,
-    "128DPS":  QMI8658GyroRange.GYR_RANGE_128DPS,
-    "256DPS":  QMI8658GyroRange.GYR_RANGE_256DPS,
-    "512DPS":  QMI8658GyroRange.GYR_RANGE_512DPS,
-    "1024DPS": QMI8658GyroRange.GYR_RANGE_1024DPS,
+    "32dps": QMI8658GyroRange.QMI8658GyrRange_32dps,
+    "64dps": QMI8658GyroRange.QMI8658GyrRange_64dps,
+    "128dps": QMI8658GyroRange.QMI8658GyrRange_128dps,
+    "256dps": QMI8658GyroRange.QMI8658GyrRange_256dps,
+    "512dps": QMI8658GyroRange.QMI8658GyrRange_512dps,
+    "1024dps": QMI8658GyroRange.QMI8658GyrRange_1024dps,
+    "2048dps": QMI8658GyroRange.QMI8658GyrRange_2048dps,
+    "4096dps": QMI8658GyroRange.QMI8658GyrRange_4096dps,
 }
 
-QMI8658GyroODR = SensorQMI8658_ns.enum("GyroOdr")
+QMI8658GyroODR = qmi8658_ns.enum("QMI8658_GyrOdr")
 QMI8658GyroODRs = {
-    "7174.4HZ": QMI8658GyroODR.GYR_ODR_7174_4Hz,
-    "3587.2HZ": QMI8658GyroODR.GYR_ODR_3587_2Hz,
-    "1793.6HZ": QMI8658GyroODR.GYR_ODR_1793_6Hz,
-    "896.8HZ":  QMI8658GyroODR.GYR_ODR_896_8Hz,
-    "448.4HZ":  QMI8658GyroODR.GYR_ODR_448_4Hz,
-    "224.2HZ":  QMI8658GyroODR.GYR_ODR_224_2Hz,
-    "112.1HZ":  QMI8658GyroODR.GYR_ODR_112_1Hz,
-    "56.05HZ":  QMI8658GyroODR.GYR_ODR_56_05Hz,
-    "28.025HZ": QMI8658GyroODR.GYR_ODR_28_025Hz,
+    "8KHz": QMI8658GyroODR.QMI8658GyrOdr_8000Hz,
+    "4KHz": QMI8658GyroODR.QMI8658GyrOdr_4000Hz,
+    "2KHz": QMI8658GyroODR.QMI8658GyrOdr_2000Hz,
+    "1KHz": QMI8658GyroODR.QMI8658GyrOdr_1000Hz,
+    "500Hz": QMI8658GyroODR.QMI8658GyrOdr_500Hz,
+    "250Hz": QMI8658GyroODR.QMI8658GyrOdr_250Hz,
+    "125Hz": QMI8658GyroODR.QMI8658GyrOdr_125Hz,
+    "62.5Hz": QMI8658GyroODR.QMI8658GyrOdr_62_5Hz,
+    "31.25Hz": QMI8658GyroODR.QMI8658GyrOdr_31_25Hz,
 }
 
-QMI8658LpfMode = SensorQMI8658_ns.enum("LpfMode")
+QMI8658LpfMode = qmi8658_ns.enum("QMI8658_LpfModes")
 QMI8658LpfModes = {
-    "0": QMI8658LpfMode.LPF_MODE_0,
-    "1": QMI8658LpfMode.LPF_MODE_1,
-    "2": QMI8658LpfMode.LPF_MODE_2,
-    "3": QMI8658LpfMode.LPF_MODE_3,
+    "0": QMI8658LpfMode.QMI8658Lpf_Mode0,
+    "1": QMI8658LpfMode.QMI8658Lpf_Mode1,
+    "2": QMI8658LpfMode.QMI8658Lpf_Mode2,
+    "3": QMI8658LpfMode.QMI8658Lpf_Mode3,
 }
+
 
 def validate_enum(enum_values, units=None, int=True):
     _units = []
@@ -103,6 +107,7 @@ def validate_enum(enum_values, units=None, int=True):
         _units = units if isinstance(units, list) else [units]
         _units = [str(x) for x in _units]
     enum_bound = cv.enum(enum_values, int=int)
+
     def validate_enum_bound(value):
         value = cv.string(value)
         for unit in _units:
@@ -110,6 +115,7 @@ def validate_enum(enum_values, units=None, int=True):
                 value = value[: -len(unit)]
                 break
         return enum_bound(value)
+
     return validate_enum_bound
 
 
@@ -134,30 +140,39 @@ temperature_schema = sensor.sensor_schema(
 
 
 CONFIG_SCHEMA = cv.All(
-    cv.only_with_arduino,
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(QMI8658Component),
             cv.Optional(CONF_ADDRESS): cv.i2c_address,
-            cv.Exclusive(CONF_INTERRUPT_PIN_1, CONF_INTERRUPT_GROUP): pins.gpio_input_pin_schema,
-            cv.Exclusive(CONF_INTERRUPT_PIN_2, CONF_INTERRUPT_GROUP): pins.gpio_input_pin_schema,
-            cv.Optional(CONF_ACCELERATION_RANGE, default="4G"): cv.one_of(
-                *QMI8658AccelRanges, upper=True,
+            cv.Exclusive(
+                CONF_INTERRUPT_PIN_1, CONF_INTERRUPT_GROUP
+            ): pins.gpio_input_pin_schema,
+            cv.Exclusive(
+                CONF_INTERRUPT_PIN_2, CONF_INTERRUPT_GROUP
+            ): pins.gpio_input_pin_schema,
+            cv.Optional(CONF_ACCELERATION_RANGE, default="8G"): cv.one_of(
+                *QMI8658AccelRanges,
+                upper=True,
             ),
-            cv.Optional(CONF_ACCELERATION_ODR, default="1000Hz"): cv.one_of(
-                *QMI8658AccelODRs, upper=True,
+            cv.Optional(CONF_ACCELERATION_ODR, default="1KHz"): cv.one_of(
+                *QMI8658AccelODRs,
+                upper=True,
             ),
             cv.Optional(CONF_ACCELERATION_LPF_MODE, default="0"): cv.one_of(
-                *QMI8658LpfModes, upper=True,
+                *QMI8658LpfModes,
+                upper=True,
             ),
-            cv.Optional(CONF_GYROSCOPE_RANGE, default="64DPS"): cv.one_of(
-                *QMI8658GyroRanges, upper=True,
+            cv.Optional(CONF_GYROSCOPE_RANGE, default="512dps"): cv.one_of(
+                *QMI8658GyroRanges,
+                upper=True,
             ),
-            cv.Optional(CONF_GYROSCOPE_ODR, default="896.8HZ"): cv.one_of(
-                *QMI8658GyroODRs, upper=True,
+            cv.Optional(CONF_GYROSCOPE_ODR, default="1KHz"): cv.one_of(
+                *QMI8658GyroODRs,
+                upper=True,
             ),
             cv.Optional(CONF_GYROSCOPE_LPF_MODE, default="3"): cv.one_of(
-                *QMI8658LpfModes, upper=True,
+                *QMI8658LpfModes,
+                upper=True,
             ),
             cv.Optional(CONF_ACCELERATION_X): acceleration_schema,
             cv.Optional(CONF_ACCELERATION_Y): acceleration_schema,
@@ -169,7 +184,7 @@ CONFIG_SCHEMA = cv.All(
         }
     )
     .extend(cv.polling_component_schema("5s"))
-    .extend(i2c.i2c_device_schema(0x6B))
+    .extend(i2c.i2c_device_schema(0x6B)),
 )
 
 
