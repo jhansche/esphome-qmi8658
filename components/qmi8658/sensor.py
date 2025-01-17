@@ -52,44 +52,44 @@ QMI8658AccelRanges = {
 
 QMI8658AccelODR = qmi8658_ns.enum("QMI8658_AccOdr")
 QMI8658AccelODRs = {
-    "8KHz": QMI8658AccelODR.QMI8658AccOdr_8000Hz,
-    "4KHz": QMI8658AccelODR.QMI8658AccOdr_4000Hz,
-    "2KHz": QMI8658AccelODR.QMI8658AccOdr_2000Hz,
-    "1KHz": QMI8658AccelODR.QMI8658AccOdr_1000Hz,
-    "500Hz": QMI8658AccelODR.QMI8658AccOdr_500Hz,
-    "250Hz": QMI8658AccelODR.QMI8658AccOdr_250Hz,
-    "125Hz": QMI8658AccelODR.QMI8658AccOdr_125Hz,
-    "62.5Hz": QMI8658AccelODR.QMI8658AccOdr_62_5Hz,
-    "31.25Hz": QMI8658AccelODR.QMI8658AccOdr_31_25Hz,
-    "LP_128Hz": QMI8658AccelODR.QMI8658AccOdr_LowPower_128Hz,
-    "LP_21Hz": QMI8658AccelODR.QMI8658AccOdr_LowPower_21Hz,
-    "LP_11Hz": QMI8658AccelODR.QMI8658AccOdr_LowPower_11Hz,
-    "LP_3Hz": QMI8658AccelODR.QMI8658AccOdr_LowPower_3Hz,
+    "8KHZ": QMI8658AccelODR.QMI8658AccOdr_8000Hz,
+    "4KHZ": QMI8658AccelODR.QMI8658AccOdr_4000Hz,
+    "2KHZ": QMI8658AccelODR.QMI8658AccOdr_2000Hz,
+    "1KHZ": QMI8658AccelODR.QMI8658AccOdr_1000Hz,
+    "500HZ": QMI8658AccelODR.QMI8658AccOdr_500Hz,
+    "250HZ": QMI8658AccelODR.QMI8658AccOdr_250Hz,
+    "125HZ": QMI8658AccelODR.QMI8658AccOdr_125Hz,
+    "62.5HZ": QMI8658AccelODR.QMI8658AccOdr_62_5Hz,
+    "31.25HZ": QMI8658AccelODR.QMI8658AccOdr_31_25Hz,
+    "LP_128HZ": QMI8658AccelODR.QMI8658AccOdr_LowPower_128Hz,
+    "LP_21HZ": QMI8658AccelODR.QMI8658AccOdr_LowPower_21Hz,
+    "LP_11HZ": QMI8658AccelODR.QMI8658AccOdr_LowPower_11Hz,
+    "LP_3HZ": QMI8658AccelODR.QMI8658AccOdr_LowPower_3Hz,
 }
 
 QMI8658GyroRange = qmi8658_ns.enum("QMI8658_GyrRange")
 QMI8658GyroRanges = {
-    "32dps": QMI8658GyroRange.QMI8658GyrRange_32dps,
-    "64dps": QMI8658GyroRange.QMI8658GyrRange_64dps,
-    "128dps": QMI8658GyroRange.QMI8658GyrRange_128dps,
-    "256dps": QMI8658GyroRange.QMI8658GyrRange_256dps,
-    "512dps": QMI8658GyroRange.QMI8658GyrRange_512dps,
-    "1024dps": QMI8658GyroRange.QMI8658GyrRange_1024dps,
-    "2048dps": QMI8658GyroRange.QMI8658GyrRange_2048dps,
-    "4096dps": QMI8658GyroRange.QMI8658GyrRange_4096dps,
+    "32DPS": QMI8658GyroRange.QMI8658GyrRange_32dps,
+    "64DPS": QMI8658GyroRange.QMI8658GyrRange_64dps,
+    "128DPS": QMI8658GyroRange.QMI8658GyrRange_128dps,
+    "256DPS": QMI8658GyroRange.QMI8658GyrRange_256dps,
+    "512DPS": QMI8658GyroRange.QMI8658GyrRange_512dps,
+    "1024DPS": QMI8658GyroRange.QMI8658GyrRange_1024dps,
+    "2048DPS": QMI8658GyroRange.QMI8658GyrRange_2048dps,
+    "4096DPS": QMI8658GyroRange.QMI8658GyrRange_4096dps,
 }
 
 QMI8658GyroODR = qmi8658_ns.enum("QMI8658_GyrOdr")
 QMI8658GyroODRs = {
-    "8KHz": QMI8658GyroODR.QMI8658GyrOdr_8000Hz,
-    "4KHz": QMI8658GyroODR.QMI8658GyrOdr_4000Hz,
-    "2KHz": QMI8658GyroODR.QMI8658GyrOdr_2000Hz,
-    "1KHz": QMI8658GyroODR.QMI8658GyrOdr_1000Hz,
-    "500Hz": QMI8658GyroODR.QMI8658GyrOdr_500Hz,
-    "250Hz": QMI8658GyroODR.QMI8658GyrOdr_250Hz,
-    "125Hz": QMI8658GyroODR.QMI8658GyrOdr_125Hz,
-    "62.5Hz": QMI8658GyroODR.QMI8658GyrOdr_62_5Hz,
-    "31.25Hz": QMI8658GyroODR.QMI8658GyrOdr_31_25Hz,
+    "8KHZ": QMI8658GyroODR.QMI8658GyrOdr_8000Hz,
+    "4KHZ": QMI8658GyroODR.QMI8658GyrOdr_4000Hz,
+    "2KHZ": QMI8658GyroODR.QMI8658GyrOdr_2000Hz,
+    "1KHZ": QMI8658GyroODR.QMI8658GyrOdr_1000Hz,
+    "500HZ": QMI8658GyroODR.QMI8658GyrOdr_500Hz,
+    "250HZ": QMI8658GyroODR.QMI8658GyrOdr_250Hz,
+    "125HZ": QMI8658GyroODR.QMI8658GyrOdr_125Hz,
+    "62.5HZ": QMI8658GyroODR.QMI8658GyrOdr_62_5Hz,
+    "31.25HZ": QMI8658GyroODR.QMI8658GyrOdr_31_25Hz,
 }
 
 QMI8658LpfMode = qmi8658_ns.enum("QMI8658_LpfModes")
@@ -154,16 +154,16 @@ CONFIG_SCHEMA = cv.All(
                 *QMI8658AccelRanges,
                 upper=True,
             ),
-            cv.Optional(CONF_ACCELERATION_ODR, default="1KHz"): cv.one_of(
+            cv.Optional(CONF_ACCELERATION_ODR, default="1KHZ"): cv.one_of(
                 *QMI8658AccelODRs,
                 upper=True,
             ),
             cv.Optional(CONF_ACCELERATION_LPF_MODE, default="true"): cv.boolean,
-            cv.Optional(CONF_GYROSCOPE_RANGE, default="512dps"): cv.one_of(
+            cv.Optional(CONF_GYROSCOPE_RANGE, default="512DPS"): cv.one_of(
                 *QMI8658GyroRanges,
                 upper=True,
             ),
-            cv.Optional(CONF_GYROSCOPE_ODR, default="1KHz"): cv.one_of(
+            cv.Optional(CONF_GYROSCOPE_ODR, default="1KHZ"): cv.one_of(
                 *QMI8658GyroODRs,
                 upper=True,
             ),
