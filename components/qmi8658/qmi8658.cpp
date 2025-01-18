@@ -98,31 +98,6 @@ void QMI8658Component::loop() {
 }
 
 void QMI8658Component::update() {
-  // Debugging
-  {
-    uint8_t read_data = 0x00;
-    this->read_register(QMI8658Register_Ctrl1, &read_data, 1, false);
-    ESP_LOGI(TAG, "QMI8658Register_Ctrl1 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl2, &read_data, 1, false);
-    ESP_LOGI(TAG, "QMI8658Register_Ctrl2 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl3, &read_data, 1, false);
-    ESP_LOGI(TAG, "QMI8658Register_Ctrl3 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl4, &read_data, 1, false);
-    ESP_LOGI(TAG, "QMI8658Register_Ctrl4 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl5, &read_data, 1, false);
-    ESP_LOGI(TAG, "QMI8658Register_Ctrl5 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl6, &read_data, 1, false);
-    ESP_LOGI(TAG, "QMI8658Register_Ctrl6 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl7, &read_data, 1);
-    ESP_LOGI(TAG, "QMI8658Register_Ctrl7 = %x", read_data);
-    this->read_register(QMI8658Register_StatusInt, &read_data, 1);
-    ESP_LOGI(TAG, "QMI8658Register_StatusInt = %x", read_data);
-    this->read_register(QMI8658Register_Status0, &read_data, 1);
-    ESP_LOGI(TAG, "QMI8658Register_Status0 = %x", read_data);
-    this->read_register(QMI8658Register_Status1, &read_data, 1);
-    ESP_LOGI(TAG, "QMI8658Register_Status1 = %x", read_data);
-  }
-
   // Read temperature
   if (this->temperature_sensor_ != nullptr) {
     uint8_t buf[2];
@@ -179,8 +154,6 @@ void QMI8658Component::update() {
     this->read_register(QMI8658Register_Gy_H, &buf_reg[3], 1, false);
     this->read_register(QMI8658Register_Gz_L, &buf_reg[4], 1, false);
     this->read_register(QMI8658Register_Gz_H, &buf_reg[5], 1, true);
-    ESP_LOGI(TAG, "Gyro read reg 6x stop=false: %x %x %x %x %x %x", buf_reg[0], buf_reg[1], buf_reg[2], buf_reg[3],
-             buf_reg[4], buf_reg[5]);
 
     raw_gyro_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
     raw_gyro_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
