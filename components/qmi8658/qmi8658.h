@@ -102,6 +102,8 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   QMI8658_AccRange accel_range_;
   QMI8658_AccOdr accel_odr_;
   QMI8658_LpfMode accel_lpf_mode_;
+  bool accel_en{true};
+  bool gyro_en{true};
 
   bool check_interrupt_();
   bool has_accel_() { return accel_x_sensor_ != nullptr || accel_y_sensor_ != nullptr || accel_z_sensor_ != nullptr; }
@@ -126,6 +128,9 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
 
   IMUdata accel_data{};
   IMUdata gyro_data{};
+  void configure_accelerometer_(uint8_t range, uint8_t odr, uint8_t lpf_mode);
+  void configure_gyro_(uint8_t range, uint8_t odr, uint8_t lpf_mode);
+  void enable_sensors_(bool accel_en, bool gyro_en, bool mag_en = false);
 };
 
 }  // namespace qmi8658
