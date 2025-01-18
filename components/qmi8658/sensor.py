@@ -146,10 +146,10 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_ADDRESS): cv.i2c_address,
             cv.Exclusive(
                 CONF_INTERRUPT_PIN_1, CONF_INTERRUPT_GROUP
-            ): pins.gpio_input_pin_schema,
+            ): pins.internal_gpio_input_pin_schema,
             cv.Exclusive(
                 CONF_INTERRUPT_PIN_2, CONF_INTERRUPT_GROUP
-            ): pins.gpio_input_pin_schema,
+            ): pins.internal_gpio_input_pin_schema,
             cv.Optional(CONF_ACCELERATION_RANGE, default="8G"): cv.one_of(
                 *QMI8658AccelRanges,
                 upper=True,

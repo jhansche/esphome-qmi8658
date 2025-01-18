@@ -27,6 +27,15 @@ void QMI8658Component::setup() {
 
   delay(10);
 
+  if (this->interrupt_pin_1_ != nullptr) {
+    this->interrupt_pin_1_->setup();
+    this->interrupt_pin_1_->attach_interrupt(&QMI8658Component::interrupt_, this, gpio::INTERRUPT_HIGH_LEVEL);
+  }
+  if (this->interrupt_pin_2_ != nullptr) {
+    this->interrupt_pin_2_->setup();
+    this->interrupt_pin_2_->attach_interrupt(&QMI8658Component::interrupt_, this, gpio::INTERRUPT_HIGH_LEVEL);
+  }
+
   this->configure_accelerometer_(this->accel_range_, this->accel_odr_, this->accel_lpf_mode_);
   this->configure_gyro_(this->gyro_range_, this->gyro_odr_, this->gyro_lpf_mode_);
 
@@ -59,6 +68,17 @@ void QMI8658Component::setup() {
   this->enable_sensors_(true, false);
 }
 
+void IRAM_ATTR QMI8658Component::interrupt_(QMI8658Component *args) {
+  uint8_t data = 0;
+  args->read_register(QMI8658Register_Status1, &data, 1);
+  ESP_LOGCONFIG(TAG, "Interrupt! Status1: %x", data);
+
+  if (args->interrupt_pin_1_ != nullptr)
+    args->interrupt_pin_1_->digital_read();
+  if (args->interrupt_pin_2_ != nullptr)
+    args->interrupt_pin_2_->digital_read();
+}
+
 void QMI8658Component::dump_config() {
   ESP_LOGCONFIG(TAG, "QMI8658:");
   LOG_I2C_DEVICE(this);
@@ -77,36 +97,7 @@ void QMI8658Component::dump_config() {
   LOG_SENSOR("  ", "Temperature", this->temperature_sensor_);
 }
 
-void QMI8658Component::loop() {
-  PollingComponent::loop();
-
-  auto has_a = has_accel_();
-  auto has_g = has_gyro_();
-
-  if (has_a || has_g) {
-    auto interrupt = this->check_interrupt_();
-
-    if (interrupt) {
-      if (has_a) {
-        this->read_accelerometer();
-      }
-      if (has_g) {
-        this->read_gyro();
-      }
-    }
-  }
-}
-
-bool QMI8658Component::check_interrupt_() {
-  bool interrupt = false;
-  if (this->interrupt_pin_1_ != nullptr) {
-    interrupt = this->interrupt_pin_1_->digital_read() || interrupt;
-  }
-  if (this->interrupt_pin_2_ != nullptr) {
-    interrupt = this->interrupt_pin_2_->digital_read() || interrupt;
-  }
-  return interrupt;
-}
+void QMI8658Component::loop() { PollingComponent::loop(); }
 
 void QMI8658Component::update() {
   uint8_t data = 0;

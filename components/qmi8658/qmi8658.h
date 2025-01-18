@@ -105,7 +105,6 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   bool accel_en{true};
   bool gyro_en{true};
 
-  bool check_interrupt_();
   bool has_accel_() { return accel_x_sensor_ != nullptr || accel_y_sensor_ != nullptr || accel_z_sensor_ != nullptr; }
   bool has_gyro_() { return gyro_x_sensor_ != nullptr || gyro_y_sensor_ != nullptr || gyro_z_sensor_ != nullptr; }
 
@@ -116,8 +115,8 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   QMI8658_GyrOdr gyro_odr_;
   QMI8658_LpfMode gyro_lpf_mode_;
 
-  GPIOPin *interrupt_pin_1_{nullptr};
-  GPIOPin *interrupt_pin_2_{nullptr};
+  InternalGPIOPin *interrupt_pin_1_{nullptr};
+  InternalGPIOPin *interrupt_pin_2_{nullptr};
   sensor::Sensor *accel_x_sensor_{nullptr};
   sensor::Sensor *accel_y_sensor_{nullptr};
   sensor::Sensor *accel_z_sensor_{nullptr};
@@ -128,6 +127,7 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
 
   IMUdata accel_data{};
   IMUdata gyro_data{};
+  static void QMI8658Component::interrupt_(QMI8658Component *args);
   void configure_accelerometer_(uint8_t range, uint8_t odr, uint8_t lpf_mode);
   void configure_gyro_(uint8_t range, uint8_t odr, uint8_t lpf_mode);
   void enable_sensors_(bool accel_en, bool gyro_en, bool mag_en = false);
