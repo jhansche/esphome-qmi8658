@@ -11,7 +11,7 @@ typedef union {
   // 0x60 = 0110 0000: addr_ai=1, endianness=1
   struct {                // default 0x20
     bool disable : 1;     // 0=normal, 1=disable
-    bool _reserved : 1;   // bit 1 is unused
+    bool : 1;             // bit 1 is unused
     bool fifo_sel : 1;    // 0=int2, 1=int1
     bool int1_en : 1;     // int1: 0=highz, 1=output
     bool int2_en : 1;     // int2: 0=highz, 1=output
@@ -54,10 +54,10 @@ typedef union {
   struct {
     bool accel_lpf_en : 1;
     QMI8658_LpfMode accel_lpf_mode : 2;
-    uint8_t _reserved1 : 1;
+    uint8_t : 1;
     bool gyro_lpf_en : 1;
     QMI8658_LpfMode gyro_lpf_mode : 2;
-    uint8_t _reserved2 : 1;
+    uint8_t : 1;
   };
   uint8_t packed[1];
 } ctrl5_reg_t;
@@ -67,10 +67,10 @@ typedef union {
   struct {
     bool accel_en : 1;
     bool gyro_en : 1;
-    uint8_t _reserved1 : 2;
+    uint8_t : 2;
     bool gyro_snooze : 1;
     bool data_ready_disable : 1;  // 0=enable DRDY with INT2, 1=disable
-    uint8_t _reserved2 : 1;
+    uint8_t : 1;
     bool sync_sample : 1;
   };
   uint8_t packed[1];
@@ -88,7 +88,7 @@ typedef union {
     bool no_motion_en : 1;   // no-motion
     bool sig_motion_en : 1;  // significant motion (requires any+no also enabled)
     bool ped_en : 1;         // pedometer
-    uint8_t _reserved : 1;
+    uint8_t : 1;
     uint8_t int_sel : 1;         // Interrupt for the motion/tap detections 0=INT2, 1=INT1
     uint8_t handshake_type : 1;  // Ctrl9 handshake type 0=INT1, 1=status_reg_t.bit7
   };
@@ -102,7 +102,7 @@ typedef union {
   struct {
     bool is_available : 1;  // ctrl7.sync_sample: data avilable; else mirrors int2
     bool is_locked : 1;     // ctrl7.sync_sample: data locked; else mirrors int1
-    uint8_t _reserved : 5;
+    uint8_t : 5;
     bool done : 1;  // ctrl9 command is done
   };
   uint8_t packed[1];
@@ -113,7 +113,7 @@ typedef union {
   struct {
     bool accel_data_ready : 1;
     bool gyro_data_ready : 1;
-    uint8_t _reserved : 6;
+    uint8_t : 6;
   };
   uint8_t packed[1];
 } status0_reg_t;
@@ -121,10 +121,10 @@ typedef union {
 // STATUS1 (0x2f)
 typedef union {
   struct {
-    uint8_t _reserved1 : 1;
+    uint8_t : 1;
     bool tap_detected : 1;
     bool wom : 1;  // wake on motion detected
-    uint8_t _reserved2 : 1;
+    uint8_t : 1;
     bool pedometer_step_detected : 1;
     bool any_motion_detected : 1;
     bool no_motion_detected : 1;
@@ -153,6 +153,109 @@ typedef union {
   int16_t raw;
   uint8_t packed[2];
 } temperature_data_t;
+
+// Ctrl9 payload structures
+typedef struct {
+  uint8_t : 4;
+  uint8_t cmd_page : 4;  // usually 1 or 2 depending on the command
+} ctrl9_cmd_info_t;
+
+#pragma region Motion detection
+typedef struct {
+  int8_t int_part : 3;    // integer portion
+  uint8_t dec_32nds : 5;  // + n/32.0 for the decimal
+} slope_threshold_t;
+
+typedef struct {
+  slope_threshold_t x /* : 8 */;
+  slope_threshold_t y /* : 8 */;
+  slope_threshold_t z /* : 8 */;
+} slope_thresholds_t;
+
+enum MotionModeAxisLogic {
+  OR = 0,
+  AND = 1,
+};
+
+typedef struct {
+  bool any_motion_x_en : 1;
+  bool any_motion_y_en : 1;
+  bool any_motion_z_en : 1;
+  MotionModeAxisLogic any_motion_axis_logic : 1;
+  bool no_motion_x_en : 1;
+  bool no_motion_y_en : 1;
+  bool no_motion_z_en : 1;
+  MotionModeAxisLogic no_motion_axis_logic : 1;
+} ctrl9_motion_mode_ctrl_t;
+
+typedef struct /* 8 bytes */ {
+  slope_thresholds_t any_motion_thr /* : 24 */;
+  slope_thresholds_t no_motion_thr /* : 24 */;
+  ctrl9_motion_mode_ctrl_t motion_mode_ctrl /* : 8 */;
+  ctrl9_cmd_info_t cmd_info{.cmd_page = 1};  // NB: this won't be set automatically!
+} ctrl9_cmd_motion_config_page1_t;
+
+typedef struct /* 8 bytes */ {
+  uint8_t any_motion_window : 8;
+  uint8_t no_motion_window : 8;
+  uint16_t sig_motion_wait_window : 16;
+  uint16_t sig_motion_confirm_window : 16;
+  // reserve the last 2 bytes for cmd_info
+  ctrl9_cmd_info_t cmd_info{.cmd_page = 2};  // NB: this won't be set automatically!
+} ctrl9_cmd_motion_config_page2_t;
+
+#pragma endregion
+
+#pragma region Tap detection
+
+typedef struct {
+  uint8_t int_part : 1;  // integer portion
+  uint8_t div_128 : 7;   // + n/128.0 for the decimal
+} one_byte_7bit_fraction_t;
+typedef struct {
+  uint8_t int_part : 6;   // integer portion
+  uint8_t div_1024 : 10;  // + n/1024.0 for the decimal
+} two_byte_10bit_fraction_t;
+
+enum TapAxisPriorityOrder {
+  AxisPriority_XYZ = 0,
+  AxisPriority_XZY = 1,
+  AxisPriority_YXZ = 2,
+  AxisPriority_YZX = 3,
+  AxisPriority_ZXY = 4,
+  AxisPriority_ZYX = 5,
+};
+// First command page for [QMI8658_Ctrl9_Cmd_Configure_Tap], written to CAL1-4
+typedef struct {
+  uint8_t peak_window : 8;  // This depends on ODR!
+  TapAxisPriorityOrder priority : 8;
+  uint16_t tap_window : 16;         // This depends on ODR!
+  uint16_t double_tap_window : 16;  // This depends on ODR!
+  uint8_t : 8;
+  ctrl9_cmd_info_t cmd_info{.cmd_page = 1};
+} ctrl9_cmd_tap_config_page1_t;
+
+// Second command page for [QMI8658_Ctrl9_Cmd_Configure_Tap], written to CAL1-4
+typedef struct {
+  one_byte_7bit_fraction_t alpha;
+  one_byte_7bit_fraction_t gamma;
+  uint16_t peak_mag_thr : 16;
+  uint16_t udm_thr : 16;
+  uint8_t : 8;
+  ctrl9_cmd_info_t cmd_info{.cmd_page = 2};
+} ctrl9_cmd_tap_config_page2_t;
+
+#pragma endregion
+
+// CTRL9 command parameters. These should be written to the CAL1-4 registers (8 bytes),
+// along with the corresponding command into CTRL9 register.
+// Many commands require multiple pages to be written in sequence.
+typedef union {
+  ctrl9_cmd_motion_config_page1_t motion_config_page1;
+  ctrl9_cmd_motion_config_page2_t motion_config_page2;
+
+  uint8_t packed[8];  // 8 bytes total
+} ctrl9_cmd_parameters_t;
 
 }  // namespace qmi8658
 }  // namespace esphome
