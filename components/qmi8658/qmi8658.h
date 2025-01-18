@@ -6,6 +6,7 @@
 #include "esphome/components/i2c/i2c.h"
 
 #include "qmi8658_types.h"
+#include "qmi8658_reg.h"
 
 namespace esphome {
 namespace qmi8658 {
@@ -138,6 +139,9 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
                        bool lpf_en = false);
   void enable_sensors_(bool accel_en, bool gyro_en);
   void enable_tap_detection_(bool enable, qmi8658_tap_config_t config = {});
+
+  // Implement "CTRL9W" protocol. See QMI8658 datasheet for details.
+  void ctrl9_write(QMI8658_Ctrl9Command cmd, ctrl9_cmd_parameters_t const params);
 };
 
 }  // namespace qmi8658

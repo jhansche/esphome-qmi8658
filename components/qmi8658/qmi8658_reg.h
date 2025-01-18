@@ -89,8 +89,8 @@ typedef union {
     bool sig_motion_en : 1;  // significant motion (requires any+no also enabled)
     bool ped_en : 1;         // pedometer
     uint8_t : 1;
-    uint8_t int_sel : 1;         // Interrupt for the motion/tap detections 0=INT2, 1=INT1
-    uint8_t handshake_type : 1;  // Ctrl9 handshake type 0=INT1, 1=status_reg_t.bit7
+    QMI8658_Interrupt int_sel : 1;  // Interrupt for the motion/tap detections 0=INT2, 1=INT1
+    uint8_t handshake_type : 1;     // Ctrl9 handshake type 0=INT1, 1=status_reg_t.bit7
   };
   uint8_t packed[1];
 } ctrl8_reg_t;
@@ -209,12 +209,38 @@ typedef struct /* 8 bytes */ {
 #pragma region Tap detection
 
 typedef struct {
-  uint8_t int_part : 1;  // integer portion
-  uint8_t div_128 : 7;   // + n/128.0 for the decimal
-} one_byte_7bit_fraction_t;
+  union {
+    struct {
+      TapStatusType type : 2;  // 0=none, 1=single, 2=double
+      uint8_t : 2;
+      TapStatusAxis axis : 2;  // 0=none, 1=x, 2=y, 3=z
+      uint8_t : 1;
+      TapStatusDirection polarity : 1;  // 1=negative
+    };
+    uint8_t packed[1];
+  };
+} qmi8658_tap_status_t;
+
+#define QMI8658_1F7(x) \
+  (one_byte_7bit_fraction_t) { \
+    .div_128 = static_cast<uint8_t>(std::round((x - std::floor(x)) * 128)), \
+    .int_part = static_cast<uint8_t>(std::floor(x)) \
+  }
+
 typedef struct {
-  uint8_t int_part : 6;    // integer portion
+  uint8_t div_128 : 7;   // + n/128.0 for the decimal
+  uint8_t int_part : 1;  // integer portion
+} one_byte_7bit_fraction_t;
+
+#define QMI8658_2F10(x) \
+  (two_byte_10bit_fraction_t) { \
+    .div_1024 = static_cast<uint16_t>(std::round((x - std::floor(x)) * 1024)), \
+    .int_part = static_cast<uint8_t>(std::floor(x)) \
+  }
+
+typedef struct {
   uint16_t div_1024 : 10;  // + n/1024.0 for the decimal
+  uint8_t int_part : 6;    // integer portion
 } two_byte_10bit_fraction_t;
 
 // First command page for [QMI8658_Ctrl9_Cmd_Configure_Tap], written to CAL1-4
@@ -224,7 +250,7 @@ typedef struct {
   uint16_t tap_window : 16;         // This depends on ODR!
   uint16_t double_tap_window : 16;  // This depends on ODR!
   uint8_t : 8;
-  ctrl9_cmd_info_t cmd_info{.cmd_page = 1};
+  ctrl9_cmd_info_t cmd_info = {.cmd_page = 1};
 } ctrl9_cmd_tap_config_page1_t;
 
 // Second command page for [QMI8658_Ctrl9_Cmd_Configure_Tap], written to CAL1-4
@@ -234,7 +260,7 @@ typedef struct {
   two_byte_10bit_fraction_t peak_mag_thr /* : 16 */;
   two_byte_10bit_fraction_t udm_thr /* : 16 */;
   uint8_t : 8;
-  ctrl9_cmd_info_t cmd_info{.cmd_page = 2};
+  ctrl9_cmd_info_t cmd_info = {.cmd_page = 2};
 } ctrl9_cmd_tap_config_page2_t;
 
 #pragma endregion
@@ -249,7 +275,9 @@ typedef union {
   ctrl9_cmd_tap_config_page1_t tap_config_page1;
   ctrl9_cmd_tap_config_page2_t tap_config_page2;
 
-  uint8_t packed[8];  // 8 bytes total
+  uint8_t packed[8];     // 8 bytes total
+  uint16_t packed16[4];  // WARNING: endianness can be an issue here!
+  uint32_t packed32[2];  // here too
 } ctrl9_cmd_parameters_t;
 
 }  // namespace qmi8658

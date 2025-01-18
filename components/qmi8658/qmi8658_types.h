@@ -156,6 +156,7 @@ enum QMI8658Register {
   QMI8658Register_AeReg1 = 87,
   /*! \brief AttitudeEngine overflow flags. */
   QMI8658Register_AeOverflow,
+  QMI8658Register_TapStatus = 89,
 
   QMI8658Register_I2CM_STATUS = 110
 };
@@ -213,7 +214,7 @@ enum QMI8658_Ois_Register {
 };
 
 // See ctrl9 docs for proper sequence
-enum QMI8658_Ctrl9Command {
+enum QMI8658_Ctrl9Command : uint8_t {
   QMI8658_Ctrl9_Cmd_ACK = 0X00,                   // -9-
   QMI8658_Ctrl9_Cmd_GyroBias = 0X01,              // (no docs)
   QMI8658_Ctrl9_Cmd_Rqst_Sdi_Mod = 0X03,          // (no docs)
@@ -427,17 +428,30 @@ struct QMI8658_sensitivityCalibration {
 };
 
 enum QMI8658_Interrupt {
-  /*! \brief FIS INT1 line. */
-  QMI8658_Int1 = (0 << 6),
-  /*! \brief FIS INT2 line. */
-  QMI8658_Int2 = (1 << 6)
+  QMI8658_Int2 = 0,
+  QMI8658_Int1 = 1,
 };
 
 enum QMI8658_InterruptState {
-  QMI8658State_high = (1 << 7), /*!< Interrupt high. */
-  QMI8658State_low = (0 << 7)   /*!< Interrupt low. */
+  QMI8658State_high = 1,  // (1 << 7), /*!< Interrupt high. */
+  QMI8658State_low = 0,   // (0 << 7)   /*!< Interrupt low. */
 };
 
+enum TapStatusAxis {
+  TapStatusAxisNone = 0,
+  TapStatusAxis_X = 1,
+  TapStatusAxis_Y = 2,
+  TapStatusAxis_Z = 3,
+};
+enum TapStatusType {
+  TapStatusTypeNone = 0,
+  TapStatusTypeSingle = 1,
+  TapStatusTypeDouble = 2,
+};
+enum TapStatusDirection {
+  TapStatusDirectionPos = 0,
+  TapStatusDirectionNeg = 1,
+};
 enum TapAxisPriorityOrder {
   AxisPriority_XYZ = 0,
   AxisPriority_XZY = 1,
