@@ -86,8 +86,8 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   void set_gyro_odr(QMI8658_GyrOdr gyro_odr) { gyro_odr_ = gyro_odr; }
   void set_gyro_lpf_mode(bool lpf_enable) { gyro_lpf_mode_ = lpf_enable ? G_LSP_MODE_3 : LPF_DISABLED; }
 
-  void set_interrupt_pin_1(GPIOPin *interrupt_pin) { interrupt_pin_1_ = interrupt_pin; }
-  void set_interrupt_pin_2(GPIOPin *interrupt_pin) { interrupt_pin_2_ = interrupt_pin; }
+  void set_interrupt_pin_1(InternalGPIOPin *interrupt_pin) { interrupt_pin_1_ = interrupt_pin; }
+  void set_interrupt_pin_2(InternalGPIOPin *interrupt_pin) { interrupt_pin_2_ = interrupt_pin; }
   void set_accel_x_sensor(sensor::Sensor *accel_x_sensor) { accel_x_sensor_ = accel_x_sensor; }
   void set_accel_y_sensor(sensor::Sensor *accel_y_sensor) { accel_y_sensor_ = accel_y_sensor; }
   void set_accel_z_sensor(sensor::Sensor *accel_z_sensor) { accel_z_sensor_ = accel_z_sensor; }
