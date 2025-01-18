@@ -97,9 +97,15 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
 
  protected:
+  void QMI8658Component::read_accelerometer();
+  void QMI8658Component::read_gyro();
   QMI8658_AccRange accel_range_;
   QMI8658_AccOdr accel_odr_;
   QMI8658_LpfMode accel_lpf_mode_;
+
+  bool check_interrupt_();
+  bool has_accel_() { return accel_x_sensor_ != nullptr || accel_y_sensor_ != nullptr || accel_z_sensor_ != nullptr; }
+  bool has_gyro_() { return gyro_x_sensor_ != nullptr || gyro_y_sensor_ != nullptr || gyro_z_sensor_ != nullptr; }
 
   uint16_t acc_lsb_div = 0;
   uint16_t gyro_lsb_div = 0;

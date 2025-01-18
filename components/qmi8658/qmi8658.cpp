@@ -85,16 +85,32 @@ void QMI8658Component::dump_config() {
 void QMI8658Component::loop() {
   PollingComponent::loop();
 
+  auto has_a = has_accel_();
+  auto has_g = has_gyro_();
+
+  if (has_a || has_g) {
+    auto interrupt = this->check_interrupt_();
+
+    if (interrupt) {
+      if (has_a) {
+        this->read_accelerometer();
+      }
+      if (has_g) {
+        this->read_gyro();
+      }
+    }
+  }
+}
+
+bool QMI8658Component::check_interrupt_() {
+  bool interrupt = false;
   if (this->interrupt_pin_1_ != nullptr) {
-    bool interrupt = this->interrupt_pin_1_->digital_read();
-    if (interrupt)
-      this->update();
+    interrupt = this->interrupt_pin_1_->digital_read() || interrupt;
   }
   if (this->interrupt_pin_2_ != nullptr) {
-    bool interrupt = this->interrupt_pin_2_->digital_read();
-    if (interrupt)
-      this->update();
+    interrupt = this->interrupt_pin_2_->digital_read() || interrupt;
   }
+  return interrupt;
 }
 
 void QMI8658Component::update() {
@@ -104,74 +120,81 @@ void QMI8658Component::update() {
     int16_t temp = 0;
     float temp_f = 0;
 
-    this->read_register(QMI8658Register_Tempearture_L, &buf[0], 1, false);
-    this->read_register(QMI8658Register_Tempearture_H, &buf[1], 1, false);
+    this->read_register(QMI8658Register_Tempearture_L, &buf[0], 1);
+    this->read_register(QMI8658Register_Tempearture_H, &buf[1], 1);
     temp = ((int16_t) buf[1] << 8) | buf[0];
     temp_f = (float) temp / 256.0f;
     ESP_LOGD(TAG, "Temperature: %d °C", temp_f);
     temperature_sensor_->publish_state(temp_f);
   }
 
-  // Read accelerometer
-  {
-    uint8_t buf_reg[2];
-    int16_t raw_acc_xyz[3];
-
-    this->read_register(QMI8658Register_Ax_L, &buf_reg[0], 1, false);
-    this->read_register(QMI8658Register_Ax_H, &buf_reg[1], 1, false);
-    raw_acc_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
-    accel_data.x = (raw_acc_xyz[0] * ONE_G) / acc_lsb_div;
-
-    this->read_register(QMI8658Register_Ay_L, &buf_reg[0], 1, false);
-    this->read_register(QMI8658Register_Ay_H, &buf_reg[1], 1, false);
-    raw_acc_xyz[1] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
-    accel_data.y = (raw_acc_xyz[1] * ONE_G) / acc_lsb_div;
-
-    this->read_register(QMI8658Register_Az_L, &buf_reg[0], 1, false);
-    this->read_register(QMI8658Register_Az_H, &buf_reg[1], 1, false);
-    raw_acc_xyz[2] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
-    accel_data.z = (raw_acc_xyz[2] * ONE_G) / acc_lsb_div;
-
-    if (this->accel_x_sensor_ != nullptr) {
-      accel_x_sensor_->publish_state(accel_data.x);
-    }
-    if (this->accel_y_sensor_ != nullptr) {
-      accel_y_sensor_->publish_state(accel_data.y);
-    }
-    if (this->accel_z_sensor_ != nullptr) {
-      accel_z_sensor_->publish_state(accel_data.z);
-    }
+  if (this->has_accel_()) {
+    this->read_accelerometer();
   }
+  if (this->has_gyro_()) {
+    this->read_gyro();
+  }
+}
 
-  // Read gyro
-  {
-    uint8_t buf_reg[6];
-    int16_t raw_gyro_xyz[3];
+void QMI8658Component::read_accelerometer() {
+  uint8_t buf_reg[2];
+  int16_t raw_acc_xyz[3];
+  // FIXME: This should use stop=false and read 6 bytes at once via a repeated start read.
+  //  But that does not appear to work correctly in esp-idf.
 
-    this->read_register(QMI8658Register_Gx_L, &buf_reg[0], 1, false);
-    this->read_register(QMI8658Register_Gx_H, &buf_reg[1], 1, false);
-    this->read_register(QMI8658Register_Gy_L, &buf_reg[2], 1, false);
-    this->read_register(QMI8658Register_Gy_H, &buf_reg[3], 1, false);
-    this->read_register(QMI8658Register_Gz_L, &buf_reg[4], 1, false);
-    this->read_register(QMI8658Register_Gz_H, &buf_reg[5], 1, true);
+  this->read_register(QMI8658Register_Ax_L, &buf_reg[0], 1);
+  this->read_register(QMI8658Register_Ax_H, &buf_reg[1], 1);
+  raw_acc_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
+  accel_data.x = (raw_acc_xyz[0] * ONE_G) / acc_lsb_div;
 
-    raw_gyro_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
-    raw_gyro_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
-    raw_gyro_xyz[2] = (int16_t) ((uint16_t) (buf_reg[5] << 8) | (buf_reg[4]));
+  this->read_register(QMI8658Register_Ay_L, &buf_reg[0], 1);
+  this->read_register(QMI8658Register_Ay_H, &buf_reg[1], 1);
+  raw_acc_xyz[1] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
+  accel_data.y = (raw_acc_xyz[1] * ONE_G) / acc_lsb_div;
 
-    this->gyro_data.x = (raw_gyro_xyz[0] * 1.0f) / gyro_lsb_div;
-    this->gyro_data.y = (raw_gyro_xyz[1] * 1.0f) / gyro_lsb_div;
-    this->gyro_data.z = (raw_gyro_xyz[2] * 1.0f) / gyro_lsb_div;
+  this->read_register(QMI8658Register_Az_L, &buf_reg[0], 1);
+  this->read_register(QMI8658Register_Az_H, &buf_reg[1], 1);
+  raw_acc_xyz[2] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
+  accel_data.z = (raw_acc_xyz[2] * ONE_G) / acc_lsb_div;
 
-    if (this->gyro_x_sensor_ != nullptr) {
-      this->gyro_x_sensor_->publish_state(gyro_data.x);
-    }
-    if (this->gyro_y_sensor_ != nullptr) {
-      this->gyro_y_sensor_->publish_state(gyro_data.y);
-    }
-    if (this->gyro_z_sensor_ != nullptr) {
-      this->gyro_z_sensor_->publish_state(gyro_data.z);
-    }
+  if (this->accel_x_sensor_ != nullptr) {
+    accel_x_sensor_->publish_state(accel_data.x);
+  }
+  if (this->accel_y_sensor_ != nullptr) {
+    accel_y_sensor_->publish_state(accel_data.y);
+  }
+  if (this->accel_z_sensor_ != nullptr) {
+    accel_z_sensor_->publish_state(accel_data.z);
+  }
+}
+
+void QMI8658Component::read_gyro() {
+  uint8_t buf_reg[6];
+  int16_t raw_gyro_xyz[3];
+
+  this->read_register(QMI8658Register_Gx_L, &buf_reg[0], 1);
+  this->read_register(QMI8658Register_Gx_H, &buf_reg[1], 1);
+  this->read_register(QMI8658Register_Gy_L, &buf_reg[2], 1);
+  this->read_register(QMI8658Register_Gy_H, &buf_reg[3], 1);
+  this->read_register(QMI8658Register_Gz_L, &buf_reg[4], 1);
+  this->read_register(QMI8658Register_Gz_H, &buf_reg[5], 1);
+
+  raw_gyro_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
+  raw_gyro_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
+  raw_gyro_xyz[2] = (int16_t) ((uint16_t) (buf_reg[5] << 8) | (buf_reg[4]));
+
+  this->gyro_data.x = (raw_gyro_xyz[0] * 1.0f) / gyro_lsb_div;
+  this->gyro_data.y = (raw_gyro_xyz[1] * 1.0f) / gyro_lsb_div;
+  this->gyro_data.z = (raw_gyro_xyz[2] * 1.0f) / gyro_lsb_div;
+
+  if (this->gyro_x_sensor_ != nullptr) {
+    this->gyro_x_sensor_->publish_state(gyro_data.x);
+  }
+  if (this->gyro_y_sensor_ != nullptr) {
+    this->gyro_y_sensor_->publish_state(gyro_data.y);
+  }
+  if (this->gyro_z_sensor_ != nullptr) {
+    this->gyro_z_sensor_->publish_state(gyro_data.z);
   }
 }
 
