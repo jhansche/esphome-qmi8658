@@ -213,18 +213,10 @@ typedef struct {
   uint8_t div_128 : 7;   // + n/128.0 for the decimal
 } one_byte_7bit_fraction_t;
 typedef struct {
-  uint8_t int_part : 6;   // integer portion
-  uint8_t div_1024 : 10;  // + n/1024.0 for the decimal
+  uint8_t int_part : 6;    // integer portion
+  uint16_t div_1024 : 10;  // + n/1024.0 for the decimal
 } two_byte_10bit_fraction_t;
 
-enum TapAxisPriorityOrder {
-  AxisPriority_XYZ = 0,
-  AxisPriority_XZY = 1,
-  AxisPriority_YXZ = 2,
-  AxisPriority_YZX = 3,
-  AxisPriority_ZXY = 4,
-  AxisPriority_ZYX = 5,
-};
 // First command page for [QMI8658_Ctrl9_Cmd_Configure_Tap], written to CAL1-4
 typedef struct {
   uint8_t peak_window : 8;  // This depends on ODR!
@@ -239,8 +231,8 @@ typedef struct {
 typedef struct {
   one_byte_7bit_fraction_t alpha;
   one_byte_7bit_fraction_t gamma;
-  uint16_t peak_mag_thr : 16;
-  uint16_t udm_thr : 16;
+  two_byte_10bit_fraction_t peak_mag_thr /* : 16 */;
+  two_byte_10bit_fraction_t udm_thr /* : 16 */;
   uint8_t : 8;
   ctrl9_cmd_info_t cmd_info{.cmd_page = 2};
 } ctrl9_cmd_tap_config_page2_t;
@@ -253,6 +245,9 @@ typedef struct {
 typedef union {
   ctrl9_cmd_motion_config_page1_t motion_config_page1;
   ctrl9_cmd_motion_config_page2_t motion_config_page2;
+
+  ctrl9_cmd_tap_config_page1_t tap_config_page1;
+  ctrl9_cmd_tap_config_page2_t tap_config_page2;
 
   uint8_t packed[8];  // 8 bytes total
 } ctrl9_cmd_parameters_t;

@@ -104,6 +104,10 @@ void QMI8658Component::dump_config() {
   LOG_SENSOR("  ", "Gyro Y", this->gyro_y_sensor_);
   LOG_SENSOR("  ", "Gyro Z", this->gyro_z_sensor_);
   LOG_SENSOR("  ", "Temperature", this->temperature_sensor_);
+
+  // FIXME: logging only
+  // Enable tap detection
+  this->enable_tap_detection_(true);
 }
 
 void QMI8658Component::loop() { PollingComponent::loop(); }
@@ -136,6 +140,10 @@ void QMI8658Component::update() {
   if (this->has_gyro_()) {
     this->read_gyro();
   }
+
+  // FIXME: logging only
+  // Enable tap detection
+  this->enable_tap_detection_(true);
 }
 
 void QMI8658Component::read_accelerometer() {
@@ -215,6 +223,31 @@ void QMI8658Component::enable_sensors_(bool accel_en, bool gyro_en) {
   ctrl7.accel_en = accel_en;
   ctrl7.gyro_en = gyro_en;
   this->write_register(QMI8658Register_Ctrl7, ctrl7.packed, 1);
+}
+
+void QMI8658Component::enable_tap_detection_(bool enable, qmi8658_tap_config_t config) {
+  ESP_LOGI(TAG, "Tap detection not implemented yet");
+  ESP_LOGD(TAG, "Tap detection: enable=%d", enable);
+  if (enable) {
+    ESP_LOGD(TAG, "Tap detection config:");
+    ESP_LOGD(TAG, "  priority=%d", config.priority);
+    ESP_LOGD(TAG, "  peak_window=%d", config.peak_window);
+    ESP_LOGD(TAG, "  tap_window=%d", config.tap_window);
+    ESP_LOGD(TAG, "  double_tap_window=%d", config.double_tap_window);
+    ESP_LOGD(TAG, "  target_interrupt=%d", config.target_interrupt);
+    ESP_LOGD(TAG, "  alpha=%f", config.alpha);
+    ESP_LOGD(TAG, "  gamma=%f", config.gamma);
+    ESP_LOGD(TAG, "  peak_mag_threshold=%f", config.peak_mag_threshold);
+    ESP_LOGD(TAG, "  undefined_motion_threshold=%f", config.undefined_motion_threshold);
+
+    ctrl9_cmd_tap_config_page1_t page1 = {
+        .cmd_info = {.cmd_page = 1},
+    };
+    ctrl9_cmd_tap_config_page2_t page2 = {};
+    ESP_LOGD(TAG, "Tap detection config: page1.page=%d", page1.cmd_info.cmd_page);
+    ESP_LOGD(TAG, "Tap detection config: page2.page=%d", page2.cmd_info.cmd_page);
+    // now do ctrl9 write, write command, etc. See ctrl9 cmd docs
+  }
 }
 
 }  // namespace qmi8658

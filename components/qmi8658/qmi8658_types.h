@@ -438,10 +438,33 @@ enum QMI8658_InterruptState {
   QMI8658State_low = (0 << 7)   /*!< Interrupt low. */
 };
 
+enum TapAxisPriorityOrder {
+  AxisPriority_XYZ = 0,
+  AxisPriority_XZY = 1,
+  AxisPriority_YXZ = 2,
+  AxisPriority_YZX = 3,
+  AxisPriority_ZXY = 4,
+  AxisPriority_ZYX = 5,
+};
+
 enum QMI8658_WakeOnMotionThreshold {
   QMI8658WomThreshold_high = 128, /*!< High threshold - large motion needed to wake. */
   QMI8658WomThreshold_low = 32    /*!< Low threshold - small motion needed to wake. */
 };
+
+// Used for simpler config inputs
+typedef struct {
+  TapAxisPriorityOrder priority = AxisPriority_XYZ;
+  uint8_t peak_window = 20;                           // @500Hz TODO: derive from millis @ ODR
+  uint16_t tap_window = 50;                           // @500Hz TODO: derive from millis @ ODR
+  uint16_t double_tap_window = 250;                   // @500Hz TODO: derive from millis @ ODR
+  QMI8658_Interrupt target_interrupt = QMI8658_Int1;  // INT1: CTRL8.int_sel=1, INT2: CTRL8.int_sel=0;
+                                                      // enable with CTRL1.intX_en
+  float alpha = 0.0625;                               // ??
+  float gamma = 0.25;                                 // ??
+  float peak_mag_threshold = 0.8f;                    // ??
+  float undefined_motion_threshold = 0.4f;            // ?? (UDM)
+} qmi8658_tap_config_t;
 
 }  // namespace qmi8658
 }  // namespace esphome

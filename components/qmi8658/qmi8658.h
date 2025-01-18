@@ -137,6 +137,7 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   void configure_gyro_(QMI8658_GyrRange range, QMI8658_GyrOdr odr, QMI8658_LpfMode lpf_mode = LSP_MODE_0,
                        bool lpf_en = false);
   void enable_sensors_(bool accel_en, bool gyro_en);
+  void enable_tap_detection_(bool enable, qmi8658_tap_config_t config = {});
 };
 
 }  // namespace qmi8658
