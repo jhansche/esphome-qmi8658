@@ -76,6 +76,63 @@ typedef union {
   uint8_t packed[1];
 } ctrl7_reg_t;
 
+// CTRL8 (0x09)
+// Motion detection and tap detection both _require_ sync_sample=0.
+// Requires MOTION_MODE_CTRL (with CTRL_CMD_CONFIGURE_MOTION) or
+// TAP_CTRL (with CTRL_CMD_CONFIGURE_TAP)
+// both via CTRL9 cmd, while A&G are disabled.
+typedef union {
+  struct {
+    bool tap_en : 1;         // tap detection
+    bool any_motion_en : 1;  // any-motion
+    bool no_motion_en : 1;   // no-motion
+    bool sig_motion_en : 1;  // significant motion (requires any+no also enabled)
+    bool ped_en : 1;         // pedometer
+    uint8_t _reserved : 1;
+    uint8_t int_sel : 1;         // Interrupt for the motion/tap detections 0=INT2, 1=INT1
+    uint8_t handshake_type : 1;  // Ctrl9 handshake type 0=INT1, 1=status_reg_t.bit7
+  };
+  uint8_t packed[1];
+} ctrl8_reg_t;
+
+// TODO: CTRL9 (0x0A)
+
+// STATUSINT (0x2d)
+typedef union {
+  struct {
+    bool is_available : 1;  // ctrl7.sync_sample: data avilable; else mirrors int2
+    bool is_locked : 1;     // ctrl7.sync_sample: data locked; else mirrors int1
+    uint8_t _reserved : 5;
+    bool done : 1;  // ctrl9 command is done
+  };
+  uint8_t packed[1];
+} statusint_reg_t;
+
+// STATUS0 (0x2e)
+typedef union {
+  struct {
+    bool accel_data_ready : 1;
+    bool gyro_data_ready : 1;
+    uint8_t _reserved : 6;
+  };
+  uint8_t packed[1];
+} status0_reg_t;
+
+// STATUS1 (0x2f)
+typedef union {
+  struct {
+    uint8_t _reserved1 : 1;
+    bool tap_detected : 1;
+    bool wom : 1;  // wake on motion detected
+    uint8_t _reserved2 : 1;
+    bool pedometer_step_detected : 1;
+    bool any_motion_detected : 1;
+    bool no_motion_detected : 1;
+    bool sig_motion_detected : 1;
+  };
+  uint8_t packed[1];
+} status1_reg_t;
+
 // IMU data (Accel: Ax_L .. Az_H, Gyro: Gx_L .. Gz_H)
 typedef union {
   struct {

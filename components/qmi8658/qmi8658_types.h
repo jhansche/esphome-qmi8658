@@ -212,14 +212,18 @@ enum QMI8658_Ois_Register {
   QMI8658_OIS_Reg_Gz_H,  // 64  [0x40]
 };
 
+// See ctrl9 docs for proper sequence
 enum QMI8658_Ctrl9Command {
-  QMI8658_Ctrl9_Cmd_NOP = 0X00,
-  QMI8658_Ctrl9_Cmd_GyroBias = 0X01,
-  QMI8658_Ctrl9_Cmd_Rqst_Sdi_Mod = 0X03,
-  QMI8658_Ctrl9_Cmd_WoM_Setting = 0x08,
-  QMI8658_Ctrl9_Cmd_AccelHostDeltaOffset = 0x09,
-  QMI8658_Ctrl9_Cmd_GyroHostDeltaOffset = 0x0A,
-  QMI8658_Ctrl9_Cmd_Dbg_WoM_Data_Enable = 0xF8,
+  QMI8658_Ctrl9_Cmd_ACK = 0X00,                   // -9-
+  QMI8658_Ctrl9_Cmd_GyroBias = 0X01,              // (no docs)
+  QMI8658_Ctrl9_Cmd_Rqst_Sdi_Mod = 0X03,          // (no docs)
+  QMI8658_Ctrl9_Cmd_Reset_FIFO = 0X04,            // -9-
+  QMI8658_Ctrl9_Cmd_Request_FIFO = 0x05,          // -9R
+  QMI8658_Ctrl9_Cmd_WoM_Setting = 0x08,           // W9-
+  QMI8658_Ctrl9_Cmd_AccelHostDeltaOffset = 0x09,  // W9-
+  QMI8658_Ctrl9_Cmd_GyroHostDeltaOffset = 0x0A,   // W9-
+  QMI8658_Ctrl9_Cmd_Configure_Tap = 0x0C,         // W9-
+  QMI8658_Ctrl9_Cmd_Dbg_WoM_Data_Enable = 0xF8,   // (no docs)
 
 };
 
@@ -246,7 +250,7 @@ enum QMI8658_LpfMode {
   LSP_MODE_3 = 0x03,
 };
 
-enum QMI8658_AccRange {      // NOTE: shift 4b for ctrl1
+enum QMI8658_AccRange {
   QMI8658AccRange_2g = 0x00, /*!< \brief +/- 2g range */
   QMI8658AccRange_4g = 0x01, /*!< \brief +/- 4g range */
   QMI8658AccRange_8g = 0x02, /*!< \brief +/- 8g range */

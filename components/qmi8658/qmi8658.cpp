@@ -109,9 +109,14 @@ void QMI8658Component::dump_config() {
 void QMI8658Component::loop() { PollingComponent::loop(); }
 
 void QMI8658Component::update() {
-  uint8_t status = 0;
-  this->read_register(QMI8658Register_Status1, &status, 1);
-  ESP_LOGCONFIG(TAG, "Status1: %x", status);
+  statusint_reg_t status_int;
+  status0_reg_t status0;
+  status1_reg_t status1;
+
+  this->read_register(QMI8658Register_StatusInt, status_int.packed, 1);
+  this->read_register(QMI8658Register_Status0, status0.packed, 1);
+  this->read_register(QMI8658Register_Status1, status1.packed, 1);
+  ESP_LOGCONFIG(TAG, "Status: int=%x, 0=%x, 1=%x", status_int.packed[0], status0.packed[0], status1.packed[0]);
 
   // Read temperature
   if (this->temperature_sensor_ != nullptr) {
