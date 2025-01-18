@@ -1,4 +1,5 @@
 #include "qmi8658.h"
+#include "qmi8658_reg.h"
 
 #include "esphome/core/log.h"
 #include "esphome/components/i2c/i2c.h"
@@ -27,6 +28,12 @@ void QMI8658Component::setup() {
 
   delay(10);
 
+  ctrl1_reg_t ctrl1 = {{
+      .endianness = 1,
+      .addr_ai = true,
+  }};
+  this->write_register(QMI8658Register_Ctrl1, ctrl1.packed, 1);
+
   if (this->interrupt_pin_1_ != nullptr) {
     this->interrupt_pin_1_->setup();
     this->interrupt_pin_1_->attach_interrupt(&QMI8658Component::interrupt_, this, gpio::INTERRUPT_HIGH_LEVEL);
@@ -45,8 +52,9 @@ void QMI8658Component::setup() {
   bool gyro_en =
       (this->gyro_x_sensor_ != nullptr || this->gyro_y_sensor_ != nullptr || this->gyro_z_sensor_ != nullptr) &&
       this->gyro_en;
-  // this->enable_sensors_(accel_en, gyro_en, false);
+  this->enable_sensors_(accel_en, gyro_en);
 
+#ifdef QMI8658_ENABLE_WOM
   unsigned char womCmd[3];
   enum QMI8658_Interrupt interrupt = QMI8658_Int1;
   enum QMI8658_InterruptState initialState = QMI8658State_low;
@@ -66,6 +74,7 @@ void QMI8658Component::setup() {
   this->write_register(QMI8658Register_Cal1_H, &womCmd[2], 1);
 
   this->enable_sensors_(true, false);
+#endif
 }
 
 void IRAM_ATTR QMI8658Component::interrupt_(QMI8658Component *args) {
@@ -100,24 +109,22 @@ void QMI8658Component::dump_config() {
 void QMI8658Component::loop() { PollingComponent::loop(); }
 
 void QMI8658Component::update() {
-  uint8_t data = 0;
-  this->read_register(QMI8658Register_Status1, &data, 1);
-  ESP_LOGCONFIG(TAG, "Status1: %x", data);
+  uint8_t status = 0;
+  this->read_register(QMI8658Register_Status1, &status, 1);
+  ESP_LOGCONFIG(TAG, "Status1: %x", status);
 
   // Read temperature
   if (this->temperature_sensor_ != nullptr) {
-    uint8_t buf[2];
-    int16_t temp = 0;
-    float temp_f = 0;
-
-    this->read_register(QMI8658Register_Tempearture_L, &buf[0], 1);
-    this->read_register(QMI8658Register_Tempearture_H, &buf[1], 1);
-    temp = ((int16_t) buf[1] << 8) | buf[0];
-    temp_f = (float) temp / 256.0f;
-    ESP_LOGD(TAG, "Temperature: %d °C", temp_f);
+    temperature_data_t data;
+    this->read_register(QMI8658Register_Tempearture_L, data.packed, 2);
+    float temp_f = data.deg_c + (data.deg_c_fraction / 256.0f);
+    ESP_LOGD(TAG, "Temperature: %x %x => %d %d (%f) => %x => %f", data.packed[0], data.packed[1], data.deg_c,
+             data.deg_c_fraction, data.deg_c_fraction / 256.0f, data.raw, temp_f);
     temperature_sensor_->publish_state(temp_f);
   }
 
+  // TODO: accel/gyro can also be internalized into input sensors like tap detection,
+  //  without being exposed as axis sensors
   if (this->has_accel_()) {
     this->read_accelerometer();
   }
@@ -127,25 +134,11 @@ void QMI8658Component::update() {
 }
 
 void QMI8658Component::read_accelerometer() {
-  uint8_t buf_reg[2];
-  int16_t raw_acc_xyz[3];
-  // FIXME: This should use stop=false and read 6 bytes at once via a repeated start read.
-  //  But that does not appear to work correctly in esp-idf.
-
-  this->read_register(QMI8658Register_Ax_L, &buf_reg[0], 1);
-  this->read_register(QMI8658Register_Ax_H, &buf_reg[1], 1);
-  raw_acc_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
-  accel_data.x = (raw_acc_xyz[0] * ONE_G) / acc_lsb_div;
-
-  this->read_register(QMI8658Register_Ay_L, &buf_reg[0], 1);
-  this->read_register(QMI8658Register_Ay_H, &buf_reg[1], 1);
-  raw_acc_xyz[1] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
-  accel_data.y = (raw_acc_xyz[1] * ONE_G) / acc_lsb_div;
-
-  this->read_register(QMI8658Register_Az_L, &buf_reg[0], 1);
-  this->read_register(QMI8658Register_Az_H, &buf_reg[1], 1);
-  raw_acc_xyz[2] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
-  accel_data.z = (raw_acc_xyz[2] * ONE_G) / acc_lsb_div;
+  imu_axis_data_t data_reg;
+  this->read_register(QMI8658Register_Ax_L, data_reg.packed, 6);
+  accel_data.x = (data_reg.raw_x * ONE_G) / acc_lsb_div;
+  accel_data.y = (data_reg.raw_y * ONE_G) / acc_lsb_div;
+  accel_data.z = (data_reg.raw_z * ONE_G) / acc_lsb_div;
 
   if (this->accel_x_sensor_ != nullptr) {
     accel_x_sensor_->publish_state(accel_data.x);
@@ -159,23 +152,11 @@ void QMI8658Component::read_accelerometer() {
 }
 
 void QMI8658Component::read_gyro() {
-  uint8_t buf_reg[6];
-  int16_t raw_gyro_xyz[3];
-
-  this->read_register(QMI8658Register_Gx_L, &buf_reg[0], 1);
-  this->read_register(QMI8658Register_Gx_H, &buf_reg[1], 1);
-  this->read_register(QMI8658Register_Gy_L, &buf_reg[2], 1);
-  this->read_register(QMI8658Register_Gy_H, &buf_reg[3], 1);
-  this->read_register(QMI8658Register_Gz_L, &buf_reg[4], 1);
-  this->read_register(QMI8658Register_Gz_H, &buf_reg[5], 1);
-
-  raw_gyro_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
-  raw_gyro_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
-  raw_gyro_xyz[2] = (int16_t) ((uint16_t) (buf_reg[5] << 8) | (buf_reg[4]));
-
-  this->gyro_data.x = (raw_gyro_xyz[0] * 1.0f) / gyro_lsb_div;
-  this->gyro_data.y = (raw_gyro_xyz[1] * 1.0f) / gyro_lsb_div;
-  this->gyro_data.z = (raw_gyro_xyz[2] * 1.0f) / gyro_lsb_div;
+  imu_axis_data_t data_reg;
+  this->read_register(QMI8658Register_Gx_L, data_reg.packed, 6);
+  gyro_data.x = (data_reg.raw_x * 1.0f) / gyro_lsb_div;
+  gyro_data.y = (data_reg.raw_y * 1.0f) / gyro_lsb_div;
+  gyro_data.z = (data_reg.raw_z * 1.0f) / gyro_lsb_div;
 
   if (this->gyro_x_sensor_ != nullptr) {
     this->gyro_x_sensor_->publish_state(gyro_data.x);
@@ -188,45 +169,47 @@ void QMI8658Component::read_gyro() {
   }
 }
 
-void QMI8658Component::configure_accelerometer_(uint8_t range, uint8_t odr, uint8_t lpf_mode) {
-  uint8_t ctl_data = range | odr;
-  this->write_register(QMI8658Register_Ctrl2, &ctl_data, 1);
-  this->read_register(QMI8658Register_Ctrl5, &ctl_data, 1);
-  ctl_data &= 0xf0;
-  if (lpf_mode == LPF_DISABLED) {
-    ctl_data &= ~0x01;
-  } else {
-    ctl_data |= 0x01 | A_LSP_MODE_3;
-  }
-  this->write_register(QMI8658Register_Ctrl5, &ctl_data, 1);
+void QMI8658Component::configure_accelerometer_(QMI8658_AccRange range, QMI8658_AccOdr odr, QMI8658_LpfMode lpf_mode,
+                                                bool lpf_en) {
+  ctrl2_reg_t ctrl2 = {{
+      .odr = odr,
+      .scale = range,
+  }};
+  this->write_register(QMI8658Register_Ctrl2, ctrl2.packed, 1);
+
+  ctrl5_reg_t ctrl5;
+  this->read_register(QMI8658Register_Ctrl5, ctrl5.packed, 1);
+  ctrl5.accel_lpf_en = lpf_en;
+  ctrl5.accel_lpf_mode = lpf_mode;
+  this->write_register(QMI8658Register_Ctrl5, ctrl5.packed, 1);
 }
 
-void QMI8658Component::configure_gyro_(uint8_t range, uint8_t odr, uint8_t lpf_mode) {
-  uint8_t ctl_data = range | odr;
-  this->write_register(QMI8658Register_Ctrl3, &ctl_data, 1);
-  this->read_register(QMI8658Register_Ctrl5, &ctl_data, 1);
-  ctl_data &= 0x0f;
-  if (lpf_mode == LPF_DISABLED) {
-    ctl_data &= ~0x10;
-  } else {
-    ctl_data |= 0x10 | G_LSP_MODE_3;
-  }
-  this->write_register(QMI8658Register_Ctrl5, &ctl_data, 1);
+void QMI8658Component::configure_gyro_(QMI8658_GyrRange range, QMI8658_GyrOdr odr, QMI8658_LpfMode lpf_mode,
+                                       bool lpf_en) {
+  ctrl3_reg_t ctrl3 = {{
+      .odr = odr,
+      .scale = range,
+  }};
+  this->write_register(QMI8658Register_Ctrl3, ctrl3.packed, 1);
+
+  ctrl5_reg_t ctrl5;
+  this->read_register(QMI8658Register_Ctrl5, ctrl5.packed, 1);
+  ctrl5.gyro_lpf_en = lpf_en;
+  ctrl5.gyro_lpf_mode = lpf_mode;
+  this->write_register(QMI8658Register_Ctrl5, ctrl5.packed, 1);
 }
 
 float QMI8658Component::get_setup_priority() const { return setup_priority::PROCESSOR; }
 
-void QMI8658Component::enable_sensors_(bool accel_en, bool gyro_en, bool mag_en) {
-  uint8_t ctl_data = QMI8658_CTRL7_DISABLE_ALL;
-  if (this->accel_x_sensor_ != nullptr || this->accel_y_sensor_ != nullptr || this->accel_z_sensor_ != nullptr) {
-    ctl_data |= QMI8658_CTRL7_ACC_ENABLE;
-  }
-  if (this->gyro_x_sensor_ != nullptr || this->gyro_y_sensor_ != nullptr || this->gyro_z_sensor_ != nullptr) {
-    ctl_data |= QMI8658_CTRL7_GYR_ENABLE;
-  }
+void QMI8658Component::enable_sensors_(bool accel_en, bool gyro_en) {
+  ctrl7_reg_t ctrl7 = {{0}};
+  this->read_register(QMI8658Register_Ctrl7, ctrl7.packed, 1);
+  ESP_LOGCONFIG(TAG, "ctrl7: %x; %x,%x,%x,%x", ctrl7.packed[0], ctrl7.accel_en, ctrl7.gyro_en, ctrl7.gyro_snooze,
+                ctrl7.data_ready_disable);
 
-  ctl_data &= QMI8658_CTRL7_ENABLE_MASK;
-  this->write_register(QMI8658Register_Ctrl7, &ctl_data, 1);
+  ctrl7.accel_en = accel_en;
+  ctrl7.gyro_en = gyro_en;
+  this->write_register(QMI8658Register_Ctrl7, ctrl7.packed, 1);
 }
 
 }  // namespace qmi8658

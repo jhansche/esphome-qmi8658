@@ -239,24 +239,18 @@ enum QMI8658_StConfig {
 };
 
 enum QMI8658_LpfMode {
-  A_LSP_MODE_0 = 0x00 << 1,
-  A_LSP_MODE_1 = 0x01 << 1,
-  A_LSP_MODE_2 = 0x02 << 1,
-  A_LSP_MODE_3 = 0x03 << 1,
-
-  G_LSP_MODE_0 = 0x00 << 5,
-  G_LSP_MODE_1 = 0x01 << 5,
-  G_LSP_MODE_2 = 0x02 << 5,
-  G_LSP_MODE_3 = 0x03 << 5,
-
-  LPF_DISABLED = 0xff,
+  // Shift 1 for Accel, 5 for Gyro; See ctrl5_reg_t
+  LSP_MODE_0 = 0x00,
+  LSP_MODE_1 = 0x01,
+  LSP_MODE_2 = 0x02,
+  LSP_MODE_3 = 0x03,
 };
 
-enum QMI8658_AccRange {
-  QMI8658AccRange_2g = 0x00 << 4, /*!< \brief +/- 2g range */
-  QMI8658AccRange_4g = 0x01 << 4, /*!< \brief +/- 4g range */
-  QMI8658AccRange_8g = 0x02 << 4, /*!< \brief +/- 8g range */
-  QMI8658AccRange_16g = 0x03 << 4 /*!< \brief +/- 16g range */
+enum QMI8658_AccRange {      // NOTE: shift 4b for ctrl1
+  QMI8658AccRange_2g = 0x00, /*!< \brief +/- 2g range */
+  QMI8658AccRange_4g = 0x01, /*!< \brief +/- 4g range */
+  QMI8658AccRange_8g = 0x02, /*!< \brief +/- 8g range */
+  QMI8658AccRange_16g = 0x03 /*!< \brief +/- 16g range */
 };
 
 enum QMI8658_AccOdr {
@@ -276,14 +270,14 @@ enum QMI8658_AccOdr {
 };
 
 enum QMI8658_GyrRange {
-  QMI8658GyrRange_32dps = 0 << 4,   /*!< \brief +-32 degrees per second. */
-  QMI8658GyrRange_64dps = 1 << 4,   /*!< \brief +-64 degrees per second. */
-  QMI8658GyrRange_128dps = 2 << 4,  /*!< \brief +-128 degrees per second. */
-  QMI8658GyrRange_256dps = 3 << 4,  /*!< \brief +-256 degrees per second. */
-  QMI8658GyrRange_512dps = 4 << 4,  /*!< \brief +-512 degrees per second. */
-  QMI8658GyrRange_1024dps = 5 << 4, /*!< \brief +-1024 degrees per second. */
-  QMI8658GyrRange_2048dps = 6 << 4, /*!< \brief +-2048 degrees per second. */
-  QMI8658GyrRange_4096dps = 7 << 4  /*!< \brief +-2560 degrees per second. */
+  QMI8658GyrRange_16dps = 0,   /*!< \brief +-16 degrees per second. */
+  QMI8658GyrRange_32dps = 1,   /*!< \brief +-32 degrees per second. */
+  QMI8658GyrRange_64dps = 2,   /*!< \brief +-64 degrees per second. */
+  QMI8658GyrRange_128dps = 3,  /*!< \brief +-128 degrees per second. */
+  QMI8658GyrRange_256dps = 4,  /*!< \brief +-256 degrees per second. */
+  QMI8658GyrRange_512dps = 5,  /*!< \brief +-512 degrees per second. */
+  QMI8658GyrRange_1024dps = 6, /*!< \brief +-1024 degrees per second. */
+  QMI8658GyrRange_2048dps = 7, /*!< \brief +-2048 degrees per second. */
 };
 
 /*!

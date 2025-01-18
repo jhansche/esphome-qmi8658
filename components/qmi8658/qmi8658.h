@@ -48,33 +48,35 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
     }
   }
   void set_accel_odr(QMI8658_AccOdr accel_odr) { accel_odr_ = accel_odr; }
-  void set_accel_lpf_mode(bool accel_lpf_mode) { accel_lpf_mode_ = accel_lpf_mode ? A_LSP_MODE_3 : LPF_DISABLED; }
+  void set_accel_lpf_mode(bool accel_lpf_mode) {
+    // accel_lpf_mode_ = accel_lpf_mode ? A_LSP_MODE_3 : LPF_DISABLED;
+  }
 
   void set_gyro_range(QMI8658_GyrRange gyro_range) {
     gyro_range_ = gyro_range;
     switch (gyro_range) {
-      case QMI8658GyrRange_32dps:
+      case QMI8658GyrRange_16dps:
         this->gyro_lsb_div = 1024;
         break;
-      case QMI8658GyrRange_64dps:
+      case QMI8658GyrRange_32dps:
         this->gyro_lsb_div = 512;
         break;
-      case QMI8658GyrRange_128dps:
+      case QMI8658GyrRange_64dps:
         this->gyro_lsb_div = 256;
         break;
-      case QMI8658GyrRange_256dps:
+      case QMI8658GyrRange_128dps:
         this->gyro_lsb_div = 128;
         break;
-      case QMI8658GyrRange_512dps:
+      case QMI8658GyrRange_256dps:
         this->gyro_lsb_div = 64;
         break;
-      case QMI8658GyrRange_1024dps:
+      case QMI8658GyrRange_512dps:
         this->gyro_lsb_div = 32;
         break;
-      case QMI8658GyrRange_2048dps:
+      case QMI8658GyrRange_1024dps:
         this->gyro_lsb_div = 16;
         break;
-      case QMI8658GyrRange_4096dps:
+      case QMI8658GyrRange_2048dps:
         this->gyro_lsb_div = 8;
         break;
       default:
@@ -84,7 +86,9 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
     }
   }
   void set_gyro_odr(QMI8658_GyrOdr gyro_odr) { gyro_odr_ = gyro_odr; }
-  void set_gyro_lpf_mode(bool lpf_enable) { gyro_lpf_mode_ = lpf_enable ? G_LSP_MODE_3 : LPF_DISABLED; }
+  void set_gyro_lpf_mode(bool lpf_enable) {
+    // gyro_lpf_mode_ = lpf_enable ? G_LSP_MODE_3 : LPF_DISABLED;
+  }
 
   void set_interrupt_pin_1(InternalGPIOPin *interrupt_pin) { interrupt_pin_1_ = interrupt_pin; }
   void set_interrupt_pin_2(InternalGPIOPin *interrupt_pin) { interrupt_pin_2_ = interrupt_pin; }
@@ -128,9 +132,11 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   IMUdata accel_data{};
   IMUdata gyro_data{};
   static void interrupt_(QMI8658Component *args);
-  void configure_accelerometer_(uint8_t range, uint8_t odr, uint8_t lpf_mode);
-  void configure_gyro_(uint8_t range, uint8_t odr, uint8_t lpf_mode);
-  void enable_sensors_(bool accel_en, bool gyro_en, bool mag_en = false);
+  void configure_accelerometer_(QMI8658_AccRange range, QMI8658_AccOdr odr, QMI8658_LpfMode lpf_mode = LSP_MODE_0,
+                                bool lpf_en = false);
+  void configure_gyro_(QMI8658_GyrRange range, QMI8658_GyrOdr odr, QMI8658_LpfMode lpf_mode = LSP_MODE_0,
+                       bool lpf_en = false);
+  void enable_sensors_(bool accel_en, bool gyro_en);
 };
 
 }  // namespace qmi8658
