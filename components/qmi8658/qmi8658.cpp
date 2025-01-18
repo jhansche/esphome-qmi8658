@@ -101,17 +101,17 @@ void QMI8658Component::update() {
   // Debugging
   {
     uint8_t read_data = 0x00;
-    this->read_register(QMI8658Register_Ctrl1, &read_data, 1);
+    this->read_register(QMI8658Register_Ctrl1, &read_data, 1, false);
     ESP_LOGI(TAG, "QMI8658Register_Ctrl1 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl2, &read_data, 1);
+    this->read_register(QMI8658Register_Ctrl2, &read_data, 1, false);
     ESP_LOGI(TAG, "QMI8658Register_Ctrl2 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl3, &read_data, 1);
+    this->read_register(QMI8658Register_Ctrl3, &read_data, 1, false);
     ESP_LOGI(TAG, "QMI8658Register_Ctrl3 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl4, &read_data, 1);
+    this->read_register(QMI8658Register_Ctrl4, &read_data, 1, false);
     ESP_LOGI(TAG, "QMI8658Register_Ctrl4 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl5, &read_data, 1);
+    this->read_register(QMI8658Register_Ctrl5, &read_data, 1, false);
     ESP_LOGI(TAG, "QMI8658Register_Ctrl5 = %x", read_data);
-    this->read_register(QMI8658Register_Ctrl6, &read_data, 1);
+    this->read_register(QMI8658Register_Ctrl6, &read_data, 1, false);
     ESP_LOGI(TAG, "QMI8658Register_Ctrl6 = %x", read_data);
     this->read_register(QMI8658Register_Ctrl7, &read_data, 1);
     ESP_LOGI(TAG, "QMI8658Register_Ctrl7 = %x", read_data);
@@ -129,8 +129,8 @@ void QMI8658Component::update() {
     int16_t temp = 0;
     float temp_f = 0;
 
-    this->read_register(QMI8658Register_Tempearture_L, &buf[0], 1);
-    this->read_register(QMI8658Register_Tempearture_H, &buf[1], 1);
+    this->read_register(QMI8658Register_Tempearture_L, &buf[0], 1, false);
+    this->read_register(QMI8658Register_Tempearture_H, &buf[1], 1, false);
     temp = ((int16_t) buf[1] << 8) | buf[0];
     temp_f = (float) temp / 256.0f;
     ESP_LOGD(TAG, "Temperature: %d °C", temp_f);
@@ -142,18 +142,18 @@ void QMI8658Component::update() {
     uint8_t buf_reg[2];
     int16_t raw_acc_xyz[3];
 
-    this->read_register(QMI8658Register_Ax_L, &buf_reg[0], 1);
-    this->read_register(QMI8658Register_Ax_H, &buf_reg[1], 1);
+    this->read_register(QMI8658Register_Ax_L, &buf_reg[0], 1, false);
+    this->read_register(QMI8658Register_Ax_H, &buf_reg[1], 1, false);
     raw_acc_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
     accel_data.x = (raw_acc_xyz[0] * ONE_G) / acc_lsb_div;
 
-    this->read_register(QMI8658Register_Ay_L, &buf_reg[0], 1);
-    this->read_register(QMI8658Register_Ay_H, &buf_reg[1], 1);
+    this->read_register(QMI8658Register_Ay_L, &buf_reg[0], 1, false);
+    this->read_register(QMI8658Register_Ay_H, &buf_reg[1], 1, false);
     raw_acc_xyz[1] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
     accel_data.y = (raw_acc_xyz[1] * ONE_G) / acc_lsb_div;
 
-    this->read_register(QMI8658Register_Az_L, &buf_reg[0], 1);
-    this->read_register(QMI8658Register_Az_H, &buf_reg[1], 1);
+    this->read_register(QMI8658Register_Az_L, &buf_reg[0], 1, false);
+    this->read_register(QMI8658Register_Az_H, &buf_reg[1], 1, false);
     raw_acc_xyz[2] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
     accel_data.z = (raw_acc_xyz[2] * ONE_G) / acc_lsb_div;
 
@@ -173,17 +173,15 @@ void QMI8658Component::update() {
     uint8_t buf_reg[6];
     int16_t raw_gyro_xyz[3];
 
-    this->read_register(QMI8658Register_Gx_L, buf_reg, 6, false);
-    // this->read_register(QMI8658Register_Gx_H, &buf_reg[1], 1);
-    // this->read_register(QMI8658Register_Gy_L, &buf_reg[2], 1);
-    // this->read_register(QMI8658Register_Gy_H, &buf_reg[3], 1);
-    // this->read_register(QMI8658Register_Gz_L, &buf_reg[4], 1);
-    // this->read_register(QMI8658Register_Gz_H, &buf_reg[5], 1);
-    ESP_LOGI(TAG, "Gyro read reg [6] burst: %x %x %x %x %x %x", buf_reg[0], buf_reg[1], buf_reg[2], buf_reg[3],
+    this->read_register(QMI8658Register_Gx_L, &buf_reg[0], 1, false);
+    this->read_register(QMI8658Register_Gx_H, &buf_reg[1], 1, false);
+    this->read_register(QMI8658Register_Gy_L, &buf_reg[2], 1, false);
+    this->read_register(QMI8658Register_Gy_H, &buf_reg[3], 1, false);
+    this->read_register(QMI8658Register_Gz_L, &buf_reg[4], 1, false);
+    this->read_register(QMI8658Register_Gz_H, &buf_reg[5], 1, true);
+    ESP_LOGI(TAG, "Gyro read reg 6x stop=false: %x %x %x %x %x %x", buf_reg[0], buf_reg[1], buf_reg[2], buf_reg[3],
              buf_reg[4], buf_reg[5]);
 
-    this->read_bytes_16(QMI8658Register_Gx_L, reinterpret_cast<uint16_t *>(raw_gyro_xyz), 3);
-    ESP_LOGI(TAG, "Gyro bytes 16 into [3]: %04hx %04hx %04hx", raw_gyro_xyz[0], raw_gyro_xyz[1], raw_gyro_xyz[2]);
     raw_gyro_xyz[0] = (int16_t) ((uint16_t) (buf_reg[1] << 8) | (buf_reg[0]));
     raw_gyro_xyz[1] = (int16_t) ((uint16_t) (buf_reg[3] << 8) | (buf_reg[2]));
     raw_gyro_xyz[2] = (int16_t) ((uint16_t) (buf_reg[5] << 8) | (buf_reg[4]));
