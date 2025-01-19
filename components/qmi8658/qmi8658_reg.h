@@ -18,7 +18,7 @@ typedef union {
     bool endianness : 1;  // 0=little endian, 1=big endian
     bool addr_ai : 1;     // address auto increment (needed for burst reads)
     bool spi_3wire : 1;   // 0=4-wire, 1=3-wire
-  } bits;
+  };
   uint8_t packed[1];
 } ctrl1_reg_t;
 
@@ -90,7 +90,7 @@ typedef union {
     bool ped_en : 1;         // pedometer
     uint8_t : 1;
     QMI8658_Interrupt int_sel : 1;  // Interrupt for the motion/tap detections 0=INT2, 1=INT1
-    uint8_t handshake_type : 1;     // Ctrl9 handshake type 0=INT1, 1=status_reg_t.bit7
+    uint8_t handshake_type : 1;     // Ctrl9 handshake type 0=INT1, 1=statusint.done
   };
   uint8_t packed[1];
 } ctrl8_reg_t;

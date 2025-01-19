@@ -26,14 +26,22 @@ void QMI8658Component::setup() {
 
   ESP_LOGCONFIG(TAG, "qmi8658 chip %x, rev %x", QMI8658_chip_id, QMI8658_revision_id);
 
-  ctrl1_reg_t ctrl1 = {{
-      // Don't enable these yet...
-      // .int1_en = this->interrupt_pin_1_ != nullptr,
-      // .int2_en = this->interrupt_pin_2_ != nullptr,
-      .endianness = 1,
-      .addr_ai = true,
-  }};
+  // Even if we're not using it right now, let's read the registers so we have them.
+  read_register(QMI8658Register_Ctrl1, ctrl1.packed, 1);
+  read_register(QMI8658Register_Ctrl2, ctrl2.packed, 1);
+  read_register(QMI8658Register_Ctrl3, ctrl3.packed, 1);
+  read_register(QMI8658Register_Ctrl5, ctrl5.packed, 1);
+  read_register(QMI8658Register_Ctrl7, ctrl7.packed, 1);
+  read_register(QMI8658Register_Ctrl8, ctrl8.packed, 1);
+
+  ctrl1.endianness = 1;
+  ctrl1.addr_ai = true;  // address auto increment (needed for burst reads)
   this->write_register(QMI8658Register_Ctrl1, ctrl1.packed, 1);
+  ctrl8.handshake_type = 1;
+  this->write_register(QMI8658Register_Ctrl8, ctrl8.packed, 1);
+  ctrl7.sync_sample = false;        // not necessary for our use case
+  ctrl7.data_ready_disable = true;  // no real benefit to a firehose of data
+  this->write_register(QMI8658Register_Ctrl7, ctrl7.packed, 1);
 
   if (this->interrupt_pin_1_ != nullptr) {
     this->interrupt_pin_1_->setup();
@@ -55,10 +63,14 @@ void QMI8658Component::setup() {
       (this->gyro_x_sensor_ != nullptr || this->gyro_y_sensor_ != nullptr || this->gyro_z_sensor_ != nullptr) &&
       this->gyro_en;
   // TODO: toggle these with switches
-  this->enable_sensors_(accel_en, gyro_en);
 
-  // TODO: move enable_tap_detection_() to here?
-  //  Or toggle it with a switch? Also add config options
+  if (/* enable tap detection */ false) {
+    // TODO: move enable_tap_detection_() to here?
+    //  Or toggle it with a switch? Also add config options.
+    // For now this happens on the 3rd update()... for debugging purposes.
+    this->enable_tap_detection_(true);
+  }
+  this->enable_sensors_(accel_en, gyro_en);
 
 #ifdef QMI8658_ENABLE_WOM
   unsigned char womCmd[3];
@@ -89,9 +101,9 @@ void IRAM_ATTR QMI8658Component::interrupt_(QMI8658Component *args) {
   status0_reg_t status0;
   status1_reg_t status1;
 
-  // args->read_register(QMI8658Register_StatusInt, status_int.packed, 1);
-  // args->read_register(QMI8658Register_Status0, status0.packed, 1);
-  // args->read_register(QMI8658Register_Status1, status1.packed, 1);
+  args->read_register(QMI8658Register_StatusInt, status_int.packed, 1);
+  args->read_register(QMI8658Register_Status0, status0.packed, 1);
+  args->read_register(QMI8658Register_Status1, status1.packed, 1);
 
   if (xxx_int++ % 100 == 0) {
     ESP_LOGCONFIG(TAG, "Interrupt[%d]! Status: int=%x, 0=%x, 1=%x. Tap?=%d", xxx_int, status_int.packed[0],
@@ -108,7 +120,6 @@ void IRAM_ATTR QMI8658Component::interrupt_(QMI8658Component *args) {
     // To support esphome on_double_click and on_multi_click, we might need to adjust the double_tap_window config?
   }
 
-  // clear the interrupt?
   if (args->interrupt_pin_1_ != nullptr) {
     auto int1 = args->interrupt_pin_1_->digital_read();
     ESP_LOGD(TAG, "Interrupt 1: %d", int1);
@@ -126,15 +137,26 @@ void QMI8658Component::dump_config() {
     ESP_LOGE(TAG, "Communication with QMI8658 failed!");
   }
   LOG_UPDATE_INTERVAL(this);
-  LOG_PIN("  Interrupt pin 1: ", this->interrupt_pin_1_);
-  LOG_PIN("  Interrupt pin 2: ", this->interrupt_pin_2_);
+  LOG_SENSOR("  ", "Temperature", this->temperature_sensor_);
+
   LOG_SENSOR("  ", "Acceleration X", this->accel_x_sensor_);
   LOG_SENSOR("  ", "Acceleration Y", this->accel_y_sensor_);
   LOG_SENSOR("  ", "Acceleration Z", this->accel_z_sensor_);
+  ESP_LOGCONFIG(TAG, "  Accel range: %d", this->accel_range_);
+  ESP_LOGCONFIG(TAG, "  Accel ODR: %d", this->accel_odr_);
+
   LOG_SENSOR("  ", "Gyro X", this->gyro_x_sensor_);
   LOG_SENSOR("  ", "Gyro Y", this->gyro_y_sensor_);
   LOG_SENSOR("  ", "Gyro Z", this->gyro_z_sensor_);
-  LOG_SENSOR("  ", "Temperature", this->temperature_sensor_);
+  ESP_LOGCONFIG(TAG, "  Gyro range: %d", this->gyro_range_);
+  ESP_LOGCONFIG(TAG, "  Gyro ODR: %d", this->gyro_odr_);
+
+  ESP_LOGCONFIG(TAG, "  FIFO Int: %d", this->ctrl1.fifo_sel);  // aka DRDY
+  ESP_LOGCONFIG(TAG, "  Motion Int: %d", this->ctrl8.int_sel);
+  LOG_PIN("  Interrupt pin 1: ", this->interrupt_pin_1_);
+  ESP_LOGCONFIG(TAG, "  INT1 en: %d", this->ctrl1.int1_en);
+  LOG_PIN("  Interrupt pin 2: ", this->interrupt_pin_2_);
+  ESP_LOGCONFIG(TAG, "  INT2 en: %d", this->ctrl1.int2_en);
 }
 
 void QMI8658Component::loop() { PollingComponent::loop(); }
@@ -210,14 +232,10 @@ void QMI8658Component::read_gyro() {
 
 void QMI8658Component::configure_accelerometer_(QMI8658_AccRange range, QMI8658_AccOdr odr, QMI8658_LpfMode lpf_mode,
                                                 bool lpf_en) {
-  ctrl2_reg_t ctrl2 = {{
-      .odr = odr,
-      .scale = range,
-  }};
+  ctrl2.odr = odr;
+  ctrl2.scale = range;
   this->write_register(QMI8658Register_Ctrl2, ctrl2.packed, 1);
 
-  ctrl5_reg_t ctrl5;
-  this->read_register(QMI8658Register_Ctrl5, ctrl5.packed, 1);
   ctrl5.accel_lpf_en = lpf_en;
   ctrl5.accel_lpf_mode = lpf_mode;
   this->write_register(QMI8658Register_Ctrl5, ctrl5.packed, 1);
@@ -225,14 +243,10 @@ void QMI8658Component::configure_accelerometer_(QMI8658_AccRange range, QMI8658_
 
 void QMI8658Component::configure_gyro_(QMI8658_GyrRange range, QMI8658_GyrOdr odr, QMI8658_LpfMode lpf_mode,
                                        bool lpf_en) {
-  ctrl3_reg_t ctrl3 = {{
-      .odr = odr,
-      .scale = range,
-  }};
+  ctrl3.odr = odr;
+  ctrl3.scale = range;
   this->write_register(QMI8658Register_Ctrl3, ctrl3.packed, 1);
 
-  ctrl5_reg_t ctrl5;
-  this->read_register(QMI8658Register_Ctrl5, ctrl5.packed, 1);
   ctrl5.gyro_lpf_en = lpf_en;
   ctrl5.gyro_lpf_mode = lpf_mode;
   this->write_register(QMI8658Register_Ctrl5, ctrl5.packed, 1);
@@ -241,9 +255,6 @@ void QMI8658Component::configure_gyro_(QMI8658_GyrRange range, QMI8658_GyrOdr od
 float QMI8658Component::get_setup_priority() const { return setup_priority::PROCESSOR; }
 
 void QMI8658Component::enable_sensors_(bool accel_en, bool gyro_en) {
-  ctrl7_reg_t ctrl7 = {{0}};
-  this->read_register(QMI8658Register_Ctrl7, ctrl7.packed, 1);
-
   ctrl7.accel_en = accel_en;
   ctrl7.gyro_en = gyro_en;
   this->write_register(QMI8658Register_Ctrl7, ctrl7.packed, 1);
@@ -254,35 +265,27 @@ void QMI8658Component::enable_tap_detection_(bool enable, qmi8658_tap_config_t c
   if (++_xxx_once != 3)  // do this only on the 3rd update()
     return;
   // ^ FIXME: this is a hack to get it to run once on startup, as part of update()
-  ctrl8_reg_t ctrl8;
-  this->read_register(QMI8658Register_Ctrl8, ctrl8.packed, 1);
 
   ESP_LOGD(TAG, "Tap detection: enable=%d", enable);
   if (enable) {
-    ctrl1_reg_t ctrl1;
-    read_register(QMI8658Register_Ctrl1, ctrl1.packed, 1);
-
-    ESP_LOGD(TAG, "Tap detection config:");
+    ESP_LOGV(TAG, "Tap detection config:");
     ESP_LOGV(TAG, "  priority=%d", config.priority);
     ESP_LOGV(TAG, "  peak_window=%d", config.peak_window);
     ESP_LOGV(TAG, "  tap_window=%d", config.tap_window);
     ESP_LOGV(TAG, "  double_tap_window=%d", config.double_tap_window);
-    ESP_LOGD(TAG, "  target_interrupt=%d", config.target_interrupt);
+    ESP_LOGV(TAG, "  target_interrupt=%d", config.target_interrupt);
     ESP_LOGV(TAG, "  alpha=%f", config.alpha);
     ESP_LOGV(TAG, "  gamma=%f", config.gamma);
     ESP_LOGV(TAG, "  peak_mag_threshold=%f", config.peak_mag_threshold);
     ESP_LOGV(TAG, "  undefined_motion_threshold=%f", config.undefined_motion_threshold);
-    ESP_LOGD(TAG, "  ctrl8.int_sel=%d", ctrl8.int_sel);  // 0=INT2, 1=INT1
-    ESP_LOGD(TAG, "  ctrl1.int1_en=%d", ctrl1.bits.int1_en);
-    ESP_LOGD(TAG, "  ctrl1.int2_en=%d", ctrl1.bits.int2_en);
 
-    if (config.target_interrupt == QMI8658_Int1 && !ctrl1.bits.int1_en) {
+    if (config.target_interrupt == QMI8658_Int1 && !ctrl1.int1_en) {
       ESP_LOGW(TAG, "Tap detection: ctrl1 INT1 is not enabled.");
-      // ctrl1.bits.int1_en = true;
+      // ctrl1.int1_en = true;
       // Do we need to write it?
-    } else if (config.target_interrupt == QMI8658_Int2 && !ctrl1.bits.int2_en) {
+    } else if (config.target_interrupt == QMI8658_Int2 && !ctrl1.int2_en) {
       ESP_LOGW(TAG, "Tap detection: ctrl1 INT2 is not enabled.");
-      // ctrl1.bits.int2_en = true;
+      // ctrl1.int2_en = true;
       // Do we need to write it?
     }
 
@@ -349,10 +352,9 @@ void QMI8658Component::ctrl9_write(QMI8658_Ctrl9Command cmd, ctrl9_cmd_parameter
   statusint_reg_t status_int;
   uint8_t cmd_byte = cmd;
 
-  ESP_LOGV(TAG, "Writing CTRL9 command 0x%02x, params(page %d %d)=%02x %02x %02x %02x %02x %02x %02x %02x", cmd,
-           params.tap_config_page1.cmd_info.cmd_page, params.tap_config_page2.cmd_info.cmd_page, params.packed[0],
-           params.packed[1], params.packed[2], params.packed[3], params.packed[4], params.packed[5], params.packed[6],
-           params.packed[7]);
+  ESP_LOGV(TAG, "Writing CTRL9 command 0x%02x, params(page %d)=%02x %02x %02x %02x %02x %02x %02x %02x", cmd,
+           params.tap_config_page1.cmd_info.cmd_page, params.packed[0], params.packed[1], params.packed[2],
+           params.packed[3], params.packed[4], params.packed[5], params.packed[6], params.packed[7]);
   ESP_LOGV(TAG, "  peak_window=%d", params.tap_config_page1.peak_window);
   ESP_LOGV(TAG, "  priority=%d", params.tap_config_page1.priority);
   ESP_LOGV(TAG, "  tap_window=%d", params.tap_config_page1.tap_window);
@@ -365,7 +367,7 @@ void QMI8658Component::ctrl9_write(QMI8658_Ctrl9Command cmd, ctrl9_cmd_parameter
   this->write_register(QMI8658Register_Ctrl9, &cmd_byte, 1);
 
   // wait for DONE (or we'll have to switch to interrupt-driven)
-  delay(1);
+  delay(5);
   this->read_register(QMI8658Register_StatusInt, status_int.packed, 1);
   if (!status_int.done) {
     ESP_LOGW(TAG, "CTRL9 command not done, trying one more time");
@@ -384,7 +386,7 @@ void QMI8658Component::ctrl9_write(QMI8658_Ctrl9Command cmd, ctrl9_cmd_parameter
   this->write_register(QMI8658Register_Ctrl9, &cmd_byte, 1);
 
   // And done bit gets cleared, but we don't have to read it.
-  delay(1);
+  delay(5);
   this->read_register(QMI8658Register_StatusInt, status_int.packed, 1);
   if (status_int.done) {
     ESP_LOGI(TAG, "CTRL9 command done bit still set after ACK");

@@ -130,6 +130,14 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   sensor::Sensor *gyro_z_sensor_{nullptr};
   sensor::Sensor *temperature_sensor_{nullptr};
 
+  // Keep a copy of the last read data from each register
+  ctrl1_reg_t ctrl1;
+  ctrl2_reg_t ctrl2;
+  ctrl3_reg_t ctrl3;
+  ctrl5_reg_t ctrl5;
+  ctrl7_reg_t ctrl7;
+  ctrl8_reg_t ctrl8;
+
   IMUdata accel_data{};
   IMUdata gyro_data{};
   static void interrupt_(QMI8658Component *args);
