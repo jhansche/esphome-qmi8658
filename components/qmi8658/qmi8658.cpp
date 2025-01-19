@@ -97,6 +97,11 @@ void QMI8658Component::setup() {
 
 static int xxx_int = 0;
 void IRAM_ATTR QMI8658Component::interrupt_(QMI8658Component *args) {
+  if (xxx_int++ % 100 == 0) {
+    ESP_LOGCONFIG(TAG, "Interrupt[%d]!", xxx_int);
+  }
+  return;
+  // TODO: just set a flag or schedule this to happen on the loop
   statusint_reg_t status_int;
   status0_reg_t status0;
   status1_reg_t status1;
@@ -159,7 +164,33 @@ void QMI8658Component::dump_config() {
   ESP_LOGCONFIG(TAG, "  INT2 en: %d", this->ctrl1.int2_en);
 }
 
-void QMI8658Component::loop() { PollingComponent::loop(); }
+static int xxx_loop = 0;
+void QMI8658Component::loop() {
+  PollingComponent::loop();
+
+  // FIXME: need to handle this better
+  if (xxx_loop++ % 100 == 0) {
+    ESP_LOGCONFIG(TAG, "Loop[%d]!", xxx_loop);
+    statusint_reg_t status_int;
+    status0_reg_t status0;
+    status1_reg_t status1;
+
+    read_register(QMI8658Register_StatusInt, status_int.packed, 1);
+    read_register(QMI8658Register_Status0, status0.packed, 1);
+    read_register(QMI8658Register_Status1, status1.packed, 1);
+
+    // if tap_detected, read from TAP_STATUS (0x59)
+    if (status1.tap_detected) {
+      qmi8658_tap_status_t tap_status;
+      read_register(QMI8658Register_TapStatus, tap_status.packed, 1);
+      ESP_LOGCONFIG(TAG, "Tap detected: type=%d, axis=%d, polarity=%d", tap_status.type, tap_status.axis,
+                    tap_status.polarity);
+      // TODO: dispatch an event:
+      //  https://esphome.io/components/binary_sensor/index.html#on-click
+      // To support esphome on_double_click and on_multi_click, we might need to adjust the double_tap_window config?
+    }
+  }
+}
 
 void QMI8658Component::update() {
   statusint_reg_t status_int;
@@ -286,11 +317,11 @@ void QMI8658Component::enable_tap_detection_(bool enable, qmi8658_tap_config_t c
 
     if (config.target_interrupt == QMI8658_Int1 && !ctrl1.int1_en) {
       ESP_LOGW(TAG, "Tap detection: ctrl1 INT1 is not enabled.");
-      // ctrl1.int1_en = true;
+      ctrl1.int1_en = true;
       // Do we need to write it?
     } else if (config.target_interrupt == QMI8658_Int2 && !ctrl1.int2_en) {
       ESP_LOGW(TAG, "Tap detection: ctrl1 INT2 is not enabled.");
-      // ctrl1.int2_en = true;
+      ctrl1.int2_en = true;
       // Do we need to write it?
     }
 
@@ -346,7 +377,7 @@ void QMI8658Component::enable_tap_detection_(bool enable, qmi8658_tap_config_t c
     this->enable_sensors_(true, has_gyro_());
 
     // Then enable it in ctrl8
-    // ctrl8.tap_en = true;
+    ctrl8.tap_en = true;
   } else {
     ctrl8.tap_en = false;
   }
@@ -372,18 +403,19 @@ void QMI8658Component::ctrl9_write(QMI8658_Ctrl9Command cmd, ctrl9_cmd_parameter
   this->write_register(QMI8658Register_Ctrl9, &cmd_byte, 1);
 
   // wait for DONE (or we'll have to switch to interrupt-driven)
-  delay(10);
-  this->read_register(QMI8658Register_StatusInt, status_int.packed, 1);
-  if (!status_int.done) {
-    ESP_LOGW(TAG, "CTRL9 command not done, trying one more time");
+  for (int i = 0; i < 5; i++) {
     delay(10);
     this->read_register(QMI8658Register_StatusInt, status_int.packed, 1);
-    if (!status_int.done) {
-      ESP_LOGE(TAG, "CTRL9 command still not done, aborting");
+    if (status_int.done) {
+      ESP_LOGV(TAG, "CTRL9 command %x received by the device", cmd);
+      break;
+    } else if (i == 4) {
+      ESP_LOGE(TAG, "CTRL9 command not done after 50ms, giving up.");
       return;
+    } else {
+      ESP_LOGW(TAG, "CTRL9 command not done, trying again...");
+      continue;
     }
-  } else {
-    ESP_LOGV(TAG, "CTRL9 command %x received by the device", cmd);
   }
 
   // Acknowledge the doneness

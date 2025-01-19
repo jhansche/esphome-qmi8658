@@ -22,7 +22,6 @@ from esphome.const import (
 )
 from esphome import pins
 
-CONF_INTERRUPT_GROUP = "interrupt_group"
 CONF_INTERRUPT_PIN_1 = CONF_INTERRUPT_PIN + "_1"
 CONF_INTERRUPT_PIN_2 = CONF_INTERRUPT_PIN + "_2"
 
@@ -144,12 +143,8 @@ CONFIG_SCHEMA = cv.All(
         {
             cv.GenerateID(): cv.declare_id(QMI8658Component),
             cv.Optional(CONF_ADDRESS): cv.i2c_address,
-            cv.Exclusive(
-                CONF_INTERRUPT_PIN_1, CONF_INTERRUPT_GROUP
-            ): pins.internal_gpio_input_pin_schema,
-            cv.Exclusive(
-                CONF_INTERRUPT_PIN_2, CONF_INTERRUPT_GROUP
-            ): pins.internal_gpio_input_pin_schema,
+            cv.Optional(CONF_INTERRUPT_PIN_1): pins.internal_gpio_input_pin_schema,
+            cv.Optional(CONF_INTERRUPT_PIN_2): pins.internal_gpio_input_pin_schema,
             cv.Optional(CONF_ACCELERATION_RANGE, default="8G"): cv.one_of(
                 *QMI8658AccelRanges,
                 upper=True,
