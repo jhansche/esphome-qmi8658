@@ -169,16 +169,21 @@ void QMI8658Component::update() {
   this->read_register(QMI8658Register_StatusInt, status_int.packed, 1);
   this->read_register(QMI8658Register_Status0, status0.packed, 1);
   this->read_register(QMI8658Register_Status1, status1.packed, 1);
-  ESP_LOGCONFIG(TAG, "Status: int=%x, 0=%x, 1=%x", status_int.packed[0], status0.packed[0], status1.packed[0]);
+  ESP_LOGCONFIG(TAG, "Status: int=%x(%d,%d), 0=%x, 1=%x", status_int.packed[0], status_int.int1_mirror,
+                status_int.int2_mirror, status0.packed[0], status1.packed[0]);
 
   // Read temperature
   if (this->temperature_sensor_ != nullptr) {
     temperature_data_t data;
-    this->read_register(QMI8658Register_Tempearture_L, data.packed, 2);
-    float temp_f = data.deg_c + (data.deg_c_fraction / 256.0f);
-    ESP_LOGD(TAG, "Temperature: %x %x => %d %d (%f) => %x => %f", data.packed[0], data.packed[1], data.deg_c,
-             data.deg_c_fraction, data.deg_c_fraction / 256.0f, data.raw, temp_f);
-    temperature_sensor_->publish_state(temp_f);
+    auto res = this->read_register(QMI8658Register_Tempearture_L, data.packed, 2);
+    if (res != i2c::ERROR_OK) {
+      ESP_LOGE(TAG, "Failed to read temperature (%04x): %x", data.raw, res);
+    } else {
+      float temp_f = (float) data.raw / 256.0f;
+      ESP_LOGD(TAG, "Temperature: %x %x (%x) => %d + %d/256 (%f) => %f", data.packed[0], data.packed[1], data.raw,
+               data.deg_c, data.deg_c_fraction, data.deg_c_fraction / 256.0f, temp_f);
+      temperature_sensor_->publish_state(temp_f);
+    }
   }
 
   // TODO: accel/gyro can also be internalized into input sensors like tap detection,
@@ -367,7 +372,7 @@ void QMI8658Component::ctrl9_write(QMI8658_Ctrl9Command cmd, ctrl9_cmd_parameter
   this->write_register(QMI8658Register_Ctrl9, &cmd_byte, 1);
 
   // wait for DONE (or we'll have to switch to interrupt-driven)
-  delay(5);
+  delay(10);
   this->read_register(QMI8658Register_StatusInt, status_int.packed, 1);
   if (!status_int.done) {
     ESP_LOGW(TAG, "CTRL9 command not done, trying one more time");
@@ -378,7 +383,7 @@ void QMI8658Component::ctrl9_write(QMI8658_Ctrl9Command cmd, ctrl9_cmd_parameter
       return;
     }
   } else {
-    ESP_LOGD(TAG, "CTRL9 command %x received by the device", cmd);
+    ESP_LOGV(TAG, "CTRL9 command %x received by the device", cmd);
   }
 
   // Acknowledge the doneness

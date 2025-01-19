@@ -100,6 +100,12 @@ typedef union {
 // STATUSINT (0x2d)
 typedef union {
   struct {
+    bool int2_mirror : 1;  // mirrors int2
+    bool int1_mirror : 1;  // mirrors int1
+    uint8_t : 5;
+    bool : 1;
+  };
+  struct {
     bool is_available : 1;  // ctrl7.sync_sample: data avilable; else mirrors int2
     bool is_locked : 1;     // ctrl7.sync_sample: data locked; else mirrors int1
     uint8_t : 5;
@@ -147,8 +153,8 @@ typedef union {
 // Temperature data (Tempearture_L .. Tempearture_H)
 typedef union {
   struct {
-    int8_t deg_c_fraction : 8;  // fractional portion (float) = deg_c_fraction / 256.0f
-    int8_t deg_c : 8;           // degC
+    uint8_t deg_c_fraction : 8;  // fractional portion (float) = deg_c_fraction / 256.0f
+    uint8_t deg_c : 8;           // degC
   };
   int16_t raw;
   uint8_t packed[2];
