@@ -485,7 +485,7 @@ typedef struct {
   QMI8658_Interrupt target_interrupt = QMI8658_Int1;
   QMI8658_InterruptState interrupt_state = QMI8658State_low;
   QMI8658_WakeOnMotionThreshold threshold = QMI8658WomThreshold_low;
-  uint8_t blanking_time = 0;  // 0-64
+  uint8_t blanking_time = 0x3f;  // 0-63 samples
 } qmi8658_wom_config_t;
 
 }  // namespace qmi8658

@@ -120,8 +120,6 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
   QMI8658_GyrOdr gyro_odr_;
   QMI8658_LpfMode gyro_lpf_mode_;
 
-  InternalGPIOPin *interrupt_pin_1_{nullptr};
-  InternalGPIOPin *interrupt_pin_2_{nullptr};
   sensor::Sensor *accel_x_sensor_{nullptr};
   sensor::Sensor *accel_y_sensor_{nullptr};
   sensor::Sensor *accel_z_sensor_{nullptr};
@@ -140,7 +138,7 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
 
   IMUdata accel_data{};
   IMUdata gyro_data{};
-  static void interrupt_(QMI8658Component *args);
+
   void configure_accelerometer_(QMI8658_AccRange range, QMI8658_AccOdr odr, QMI8658_LpfMode lpf_mode = LSP_MODE_0,
                                 bool lpf_en = false);
   void configure_gyro_(QMI8658_GyrRange range, QMI8658_GyrOdr odr, QMI8658_LpfMode lpf_mode = LSP_MODE_0,
@@ -151,6 +149,18 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
 
   // Implement "CTRL9W" protocol. See QMI8658 datasheet for details.
   void ctrl9_write(QMI8658_Ctrl9Command cmd, ctrl9_cmd_parameters_t const params);
+
+  InternalGPIOPin *interrupt_pin_1_{nullptr};
+  InternalGPIOPin *interrupt_pin_2_{nullptr};
+
+  ISRInternalGPIOPin isr_pin_1_;
+  ISRInternalGPIOPin isr_pin_2_;
+
+  uint16_t int1_count_{0};
+  uint16_t int2_count_{0};
+
+  static void int1_isr_(QMI8658Component *args);
+  static void int2_isr_(QMI8658Component *args);
 };
 
 }  // namespace qmi8658
