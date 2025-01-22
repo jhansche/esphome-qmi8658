@@ -147,6 +147,7 @@ class QMI8658Component : public PollingComponent, public i2c::I2CDevice {
                        bool lpf_en = false);
   void enable_sensors_(bool accel_en, bool gyro_en);
   void enable_tap_detection_(bool enable, qmi8658_tap_config_t config = {});
+  void enable_wake_on_motion(bool enable, qmi8658_wom_config_t config);
 
   // Implement "CTRL9W" protocol. See QMI8658 datasheet for details.
   void ctrl9_write(QMI8658_Ctrl9Command cmd, ctrl9_cmd_parameters_t const params);

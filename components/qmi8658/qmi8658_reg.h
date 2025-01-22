@@ -271,6 +271,20 @@ typedef struct {
 
 #pragma endregion
 
+#pragma region Wake on Motion
+
+typedef struct {
+  uint8_t wom_threshold : 8;                         // mg
+  QMI8658_Interrupt target_interrupt : 1;            // 0=INT2, 1=INT1
+  QMI8658_InterruptState interrupt_start_level : 1;  // 0=low, 1=high
+  uint8_t blanking_time : 6;                         // number of samples to ignore after enabling
+  uint8_t : 8;
+  uint32_t : 32;  // Not used for anything, just filling up the 8 bytes
+  ctrl9_cmd_info_t cmd_info = {.cmd_page = 0};
+} ctrl9_cmd_wake_on_motion_config_page_t;
+
+#pragma endregion
+
 // CTRL9 command parameters. These should be written to the CAL1-4 registers (8 bytes),
 // along with the corresponding command into CTRL9 register.
 // Many commands require multiple pages to be written in sequence.
@@ -280,6 +294,8 @@ typedef union {
 
   ctrl9_cmd_tap_config_page1_t tap_config_page1;
   ctrl9_cmd_tap_config_page2_t tap_config_page2;
+
+  ctrl9_cmd_wake_on_motion_config_page_t wom_config_page;
 
   uint8_t packed[8];     // 8 bytes total
   uint16_t packed16[4];  // WARNING: endianness can be an issue here!

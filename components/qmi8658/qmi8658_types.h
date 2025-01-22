@@ -466,7 +466,7 @@ enum QMI8658_WakeOnMotionThreshold {
   QMI8658WomThreshold_low = 32    /*!< Low threshold - small motion needed to wake. */
 };
 
-// Used for simpler config inputs
+// Used for simpler config inputs [ctrl9_cmd_tap_config_page1_t]
 typedef struct {
   TapAxisPriorityOrder priority = AxisPriority_XYZ;
   uint8_t peak_window = 20;                           // @500Hz TODO: derive from millis @ ODR
@@ -479,6 +479,14 @@ typedef struct {
   float peak_mag_threshold = 0.8f;                    // ??
   float undefined_motion_threshold = 0.4f;            // ?? (UDM)
 } qmi8658_tap_config_t;
+
+// Used for simpler config inputs: [ctrl9_cmd_wake_on_motion_config_page_t]
+typedef struct {
+  QMI8658_Interrupt target_interrupt = QMI8658_Int1;
+  QMI8658_InterruptState interrupt_state = QMI8658State_low;
+  QMI8658_WakeOnMotionThreshold threshold = QMI8658WomThreshold_low;
+  uint8_t blanking_time = 0;  // 0-64
+} qmi8658_wom_config_t;
 
 }  // namespace qmi8658
 }  // namespace esphome

@@ -296,6 +296,16 @@ void QMI8658Component::enable_sensors_(bool accel_en, bool gyro_en) {
   this->write_register(QMI8658Register_Ctrl7, ctrl7.packed, 1);
 }
 
+void QMI8658Component::enable_wake_on_motion(bool enable, qmi8658_wom_config_t config) {
+  ctrl9_cmd_parameters_t params = {.wom_config_page = {
+                                       .wom_threshold = enable ? config.threshold : 0,
+                                       .target_interrupt = config.target_interrupt,
+                                       .interrupt_start_level = config.interrupt_state,
+                                       .blanking_time = config.blanking_time,
+                                   }};
+  this->ctrl9_write(QMI8658_Ctrl9_Cmd_WoM_Setting, params);
+}
+
 static int _xxx_once = 0;  // FIXME
 void QMI8658Component::enable_tap_detection_(bool enable, qmi8658_tap_config_t config) {
   if (++_xxx_once != 3)  // do this only on the 3rd update()
