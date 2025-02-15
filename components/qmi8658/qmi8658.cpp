@@ -133,19 +133,20 @@ void QMI8658Component::loop() {
   uint16_t int2 = int2_count_;
   int2_count_ -= int2;
   if (int2 > 0) {
-    ESP_LOGCONFIG(TAG, "Interrupt 2 (%s): %d", this->interrupt_pin_2_->dump_summary(), int2);
+    ESP_LOGCONFIG(TAG, "Interrupt 2 (%s): %d", this->interrupt_pin_2_->dump_summary().c_str(), int2);
   }
 
   if (xxx_loop++ % 100 == 0) {
-    ESP_LOGCONFIG(TAG, "Loop[%d]! (int1=%d, int2=%d)", xxx_loop, int1_count_, int2_count_);
+    if (int1 > 0 || int2 > 0)
+      ESP_LOGCONFIG(TAG, "Loop[%d]! (int1=%d, int2=%d)", xxx_loop, int1_count_, int2_count_);
     statusint_reg_t status_int;
     status0_reg_t status0;
     status1_reg_t status1;
     qmi8658_tap_status_t tap_status;
-    read_register(QMI8658Register_TapStatus, tap_status.packed, 1);
     read_register(QMI8658Register_StatusInt, status_int.packed, 1);
     read_register(QMI8658Register_Status0, status0.packed, 1);
     read_register(QMI8658Register_Status1, status1.packed, 1);
+    read_register(QMI8658Register_TapStatus, tap_status.packed, 1);
 
     // if tap_detected, read from TAP_STATUS (0x59)
     if (status1.tap_detected || tap_status.type != TapStatusTypeNone) {
